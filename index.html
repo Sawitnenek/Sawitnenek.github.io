@@ -9,70 +9,128 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <style>
-body{
-  font-family:"Segoe UI",Arial,sans-serif;
-  background:#f1f5f9;
-  padding:20px;
-  color:#333
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: #f1f5f9;
+  padding: 0;
+  margin: 0;
+  color: #333;
 }
-h2{text-align:center;margin-bottom:5px}
-.subtitle{text-align:center;color:#666;margin-bottom:20px}
-.card{
-  background:#fff;
-  padding:16px;
-  border-radius:10px;
-  margin-bottom:20px;
-  box-shadow:0 2px 8px rgba(0,0,0,.05)
+h2 {
+  text-align: center;
+  margin-top: 24px;
+  font-size: 2rem;
 }
-.filter{
-  display:flex;
-  justify-content:center;
-  gap:10px;
-  align-items:center
+.subtitle {
+  text-align: center;
+  color: #666;
+  margin-bottom: 20px;
 }
-input[type="date"]{
-  padding:8px 12px;
-  border-radius:6px;
-  border:1px solid #ccc
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 16px;
 }
-table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:10px
+.card {
+  background: #fff;
+  padding: 20px 16px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.07);
 }
-th,td{
-  padding:10px;
-  border-bottom:1px solid #e0e0e0;
-  text-align:center;
-  font-size:14px
+.filter {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
 }
-th{
-  background:#1b5e20;
-  color:#fff
+input[type="date"] {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 1rem;
 }
-tr:hover{background:#f9fbe7}
-tfoot td{
-  font-weight:bold;
-  background:#e8f5e9
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
 }
-.badge{
-  padding:4px 10px;
-  border-radius:12px;
-  font-size:12px;
-  font-weight:bold
+th, td {
+  padding: 12px 8px;
+  border-bottom: 1px solid #e0e0e0;
+  text-align: center;
+  font-size: 15px;
 }
-.selesai{background:#c8e6c9;color:#1b5e20}
-.belum{background:#ffcdd2;color:#b71c1c}
-.hadir{background:#bbdefb;color:#0d47a1}
-.tidak{background:#eeeeee;color:#424242}
-img{
-  width:70px;
-  border-radius:6px;
-  cursor:pointer
+th {
+  background: linear-gradient(90deg, #388e3c 0%, #1b5e20 100%);
+  color: #fff;
+  font-size: 1rem;
 }
-.section-title{
-  font-weight:bold;
-  margin-bottom:6px
+tr:hover {
+  background: #f9fbe7;
+}
+tfoot td {
+  font-weight: bold;
+  background: #e8f5e9;
+}
+.badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: bold;
+}
+.selesai {
+  background: #c8e6c9;
+  color: #1b5e20;
+}
+.belum {
+  background: #ffcdd2;
+  color: #b71c1c;
+}
+.hadir {
+  background: #bbdefb;
+  color: #0d47a1;
+}
+.tidak {
+  background: #eeeeee;
+  color: #424242;
+}
+img {
+  width: 70px;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+}
+.section-title {
+  font-weight: bold;
+  margin-bottom: 8px;
+  font-size: 1.1rem;
+}
+@media (max-width: 700px) {
+  .container {
+    max-width: 100%;
+    padding: 8px;
+  }
+  .card {
+    padding: 14px 8px;
+    margin-bottom: 16px;
+  }
+  h2 {
+    font-size: 1.3rem;
+    margin-top: 12px;
+  }
+  th, td {
+    font-size: 0.95rem;
+    padding: 8px 4px;
+  }
+  input[type="date"] {
+    font-size: 0.95rem;
+    padding: 8px 8px;
+  }
 }
 </style>
 </head>
@@ -128,7 +186,7 @@ img{
 
 <!-- SEMPROT & TEBAS -->
 <div class="card">
-  <div class="section-title">🧪 Semprot & 🌿 Tebas</div>
+  <div class="section-title">🌿 Semprot & Tebas</div>
   <table>
     <thead>
       <tr>
@@ -136,7 +194,6 @@ img{
         <th>Blok</th>
         <th>Anggota</th>
         <th>Status</th>
-        <th>Foto</th>
       </tr>
     </thead>
     <tbody id="tabelKerja"></tbody>
@@ -215,18 +272,12 @@ async function loadKerja(t){
         const anggota = d.anggota===1 && d.nama
           ? `1 Orang (${d.nama})`
           : `${d.anggota} Orang`;
-
-        const foto = d.foto
-          ? `<a href="${d.foto}" target="_blank"><img src="${d.foto}"></a>`
-          : "-";
-
         tabelKerja.innerHTML+=`
         <tr>
-          <td>${jenis==="semprot"?"🧪 Semprot":"🌿 Tebas"}</td>
+          <td>${jenis==="semprot"?"Semprot":"Tebas"}</td>
           <td>${d.blok}</td>
           <td>${anggota}</td>
           <td><span class="badge ${d.status==="Selesai"?"selesai":"belum"}">${d.status}</span></td>
-          <td>${foto}</td>
         </tr>`;
       }
     });
