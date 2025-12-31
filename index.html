@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Rekap Harian Sawit</title>
+<title>Dashboard Laporan Sawit</title>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -12,22 +12,23 @@
 body{
   font-family:"Segoe UI",Arial,sans-serif;
   background:#f1f5f9;
-  padding:20px
+  padding:20px;
+  color:#333
 }
-h2{text-align:center}
+h2{text-align:center;margin-bottom:5px}
 .subtitle{text-align:center;color:#666;margin-bottom:20px}
 .card{
   background:#fff;
   padding:16px;
   border-radius:10px;
-  box-shadow:0 2px 8px rgba(0,0,0,.05);
-  margin-bottom:20px
+  margin-bottom:20px;
+  box-shadow:0 2px 8px rgba(0,0,0,.05)
 }
 .filter{
   display:flex;
   justify-content:center;
-  gap:10px;
-  align-items:center
+  align-items:center;
+  gap:10px
 }
 input[type="date"]{
   padding:8px 12px;
@@ -42,65 +43,118 @@ table{
 th,td{
   padding:10px;
   border-bottom:1px solid #e0e0e0;
-  text-align:center;
-  font-size:14px
+  text-align:center
 }
 th{
   background:#1b5e20;
   color:#fff
 }
 tr:hover{background:#f9fbe7}
+tfoot td{
+  font-weight:bold;
+  background:#e8f5e9
+}
 .badge{
   padding:4px 10px;
   border-radius:12px;
-  font-weight:bold;
-  font-size:12px
-}
-.selesai{background:#c8e6c9;color:#1b5e20}
-.belum{background:#ffcdd2;color:#b71c1c}
-.jenis{
+  font-size:13px;
   font-weight:bold
 }
-.foto{
-  width:60px;
+.badge-selesai{background:#c8e6c9;color:#1b5e20}
+.badge-belum{background:#ffcdd2;color:#b71c1c}
+.badge-hadir{background:#bbdefb;color:#0d47a1}
+.badge-tidak{background:#eeeeee;color:#424242}
+img{
+  max-width:120px;
   border-radius:6px;
-  cursor:pointer
+  margin:4px
 }
 </style>
 </head>
 
 <body>
 
-<h2>📊 Rekap Harian Kebun Sawit</h2>
-<div class="subtitle">Pemanen • Semprot • Tebas</div>
+<h2>📊 Dashboard Laporan Sawit</h2>
+<div class="subtitle">Laporan Harian Kebun</div>
 
 <!-- FILTER -->
 <div class="card">
   <div class="filter">
-    <b>Tanggal:</b>
+    <b>Pilih Tanggal:</b>
     <input type="date" id="tanggal">
   </div>
 </div>
 
-<!-- REKAP -->
+<!-- ABSENSI -->
 <div class="card">
+  <h3>👥 Absensi Anggota</h3>
+  <table>
+    <thead>
+      <tr><th>Nama</th><th>Status</th></tr>
+    </thead>
+    <tbody id="tabelAbsensi"></tbody>
+  </table>
+</div>
+
+<!-- PEMANEN -->
+<div class="card">
+  <h3>🌴 Pemanen</h3>
   <table>
     <thead>
       <tr>
-        <th>Jenis</th>
-        <th>Nama / Keterangan</th>
+        <th>Nama</th>
         <th>Blok</th>
-        <th>Hasil / Anggota</th>
+        <th>Janjang</th>
+        <th>Karung Brondol</th>
         <th>Status</th>
-        <th>Foto</th>
       </tr>
     </thead>
-    <tbody id="rekap"></tbody>
+    <tbody id="tabelPemanen"></tbody>
+    <tfoot>
+      <tr>
+        <td colspan="2">TOTAL</td>
+        <td id="totalJanjang">0</td>
+        <td id="totalKarung">0</td>
+        <td></td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+<!-- SEMPROT -->
+<div class="card">
+  <h3>🧪 Semprot</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Blok</th>
+        <th>Before</th>
+        <th>After</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="tabelSemprot"></tbody>
+  </table>
+</div>
+
+<!-- TEBAS -->
+<div class="card">
+  <h3>🌿 Tebas</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Blok</th>
+        <th>Before</th>
+        <th>After</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="tabelTebas"></tbody>
   </table>
 </div>
 
 <script>
-/* ================= FIREBASE ================= */
+/* ===== FIREBASE ===== */
 const firebaseConfig = {
   apiKey: "AIzaSyCazwLdErOX7aYw3qh8VSyOsdV5i13S3nQ",
   authDomain: "tools-mandor-sawit.firebaseapp.com",
@@ -112,66 +166,88 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-/* ================= UTIL ================= */
+/* ===== UTIL ===== */
 function today(){
   const d=new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
-/* ================= LOAD REKAP ================= */
-async function loadRekap(tgl){
-  const tbody=document.getElementById("rekap");
-  tbody.innerHTML="";
-
-  /* === PEMANEN === */
-  const pemanen = await db.collection("pemanen").get();
-  pemanen.forEach(doc=>{
+/* ===== ABSENSI ===== */
+async function loadAbsensi(t){
+  const snap=await db.collection("absensi").get();
+  tabelAbsensi.innerHTML="";
+  snap.forEach(doc=>{
     const d=doc.data();
-    if(d.tanggal===tgl){
-      tbody.innerHTML+=`
+    if(d.tanggal===t){
+      const b=d.status==="Hadir"
+        ?`<span class="badge badge-hadir">Hadir</span>`
+        :`<span class="badge badge-tidak">Tidak</span>`;
+      tabelAbsensi.innerHTML+=`<tr><td>${d.nama}</td><td>${b}</td></tr>`;
+    }
+  });
+}
+
+/* ===== PEMANEN ===== */
+async function loadPemanen(t){
+  const snap=await db.collection("pemanen").get();
+  tabelPemanen.innerHTML="";
+  let tj=0,tk=0;
+
+  snap.forEach(doc=>{
+    const d=doc.data();
+    if(d.tanggal===t){
+      let j=0,k=0;
+      if(d.jenis==="Janjang"){j=d.jumlah;tj+=d.jumlah;}
+      if(d.jenis==="Brondol"){k=d.jumlah;tk+=d.jumlah;}
+      const b=d.status==="Selesai"
+        ?`<span class="badge badge-selesai">Selesai</span>`
+        :`<span class="badge badge-belum">Belum</span>`;
+      tabelPemanen.innerHTML+=`
+        <tr>
+          <td>${d.nama}</td>
+          <td>${d.blok}</td>
+          <td>${j}</td>
+          <td>${k}</td>
+          <td>${b}</td>
+        </tr>`;
+    }
+  });
+  totalJanjang.innerText=tj;
+  totalKarung.innerText=tk;
+}
+
+/* ===== SEMPROT / TEBAS ===== */
+async function loadKerja(col,tbodyId,t){
+  const snap=await db.collection(col).get();
+  const tb=document.getElementById(tbodyId);
+  tb.innerHTML="";
+  snap.forEach(doc=>{
+    const d=doc.data();
+    if(d.tanggal===t){
+      tb.innerHTML+=`
       <tr>
-        <td class="jenis">🌴 Pemanen</td>
-        <td>${d.nama}</td>
         <td>${d.blok}</td>
-        <td>${d.jenis==="Brondol" ? d.jumlah+" Karung" : d.jumlah+" Janjang"}</td>
-        <td><span class="badge ${d.status==="Selesai"?"selesai":"belum"}">${d.status}</span></td>
-        <td>-</td>
+        <td><img src="${d.before}"></td>
+        <td><img src="${d.after}"></td>
+        <td><span class="badge badge-selesai">Selesai</span></td>
       </tr>`;
     }
   });
-
-  /* === SEMPROT & TEBAS === */
-  for(const jenis of ["semprot","tebas"]){
-    const snap = await db.collection(jenis).get();
-    snap.forEach(doc=>{
-      const d=doc.data();
-      if(d.tanggal===tgl){
-        const anggota = d.anggota===1 && d.nama
-          ? `1 Orang (${d.nama})`
-          : `${d.anggota} Orang`;
-
-        const foto = d.foto
-          ? `<a href="${d.foto}" target="_blank"><img class="foto" src="${d.foto}"></a>`
-          : "-";
-
-        tbody.innerHTML+=`
-        <tr>
-          <td class="jenis">${jenis==="semprot"?"🧪 Semprot":"🌿 Tebas"}</td>
-          <td>Pekerjaan ${jenis}</td>
-          <td>${d.blok}</td>
-          <td>${anggota}</td>
-          <td><span class="badge ${d.status==="Selesai"?"selesai":"belum"}">${d.status}</span></td>
-          <td>${foto}</td>
-        </tr>`;
-      }
-    });
-  }
 }
 
-/* ================= INIT ================= */
+/* ===== LOAD ALL ===== */
+function loadAll(){
+  const t=tanggal.value;
+  loadAbsensi(t);
+  loadPemanen(t);
+  loadKerja("semprot","tabelSemprot",t);
+  loadKerja("tebas","tabelTebas",t);
+}
+
+/* ===== INIT ===== */
 tanggal.value=today();
-tanggal.addEventListener("change",()=>loadRekap(tanggal.value));
-loadRekap(tanggal.value);
+tanggal.addEventListener("change",loadAll);
+loadAll();
 </script>
 
 </body>
