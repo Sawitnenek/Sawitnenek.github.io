@@ -133,7 +133,13 @@ label {
         <option value="Selesai">Selesai</option>
         <option value="Belum">Belum</option>
       </select>
-      <button onclick="simpanPemanen()">Simpan Pemanen</button>
+      <button onclick="simpanPemanen()" id="btnSimpanPemanen">Simpan Pemanen</button>
+      <table style="margin-top:16px;width:100%;font-size:0.98rem;">
+        <thead>
+          <tr><th>Nama</th><th>Blok</th><th>Jumlah</th><th>Jenis</th><th>Keterangan</th><th>Status</th><th>Aksi</th></tr>
+        </thead>
+        <tbody id="tabelPemanenAdmin"></tbody>
+      </table>
     </div>
 
     <!-- SEMPROT / TEBAS -->
@@ -154,7 +160,13 @@ label {
       </select>
       <label>📷 Upload Foto Kegiatan</label>
       <input type="file" id="fotoKerja" accept="image/*">
-      <button onclick="simpanKerja()">Simpan Semprot / Tebas</button>
+      <button onclick="simpanKerja()" id="btnSimpanKerja">Simpan Semprot / Tebas</button>
+      <table style="margin-top:16px;width:100%;font-size:0.98rem;">
+        <thead>
+          <tr><th>Jenis</th><th>Blok</th><th>Anggota</th><th>Nama</th><th>Status</th><th>Foto</th><th>Aksi</th></tr>
+        </thead>
+        <tbody id="tabelKerjaAdmin"></tbody>
+      </table>
     </div>
 
     <div class="card">
@@ -263,16 +275,82 @@ function simpanAbsensi(){
 window.addEventListener('DOMContentLoaded', renderAbsensiAdmin);
 
 /* ================= PEMANEN ================= */
+function renderPemanenAdmin() {
+  db.collection("pemanen").orderBy("tanggal","desc").limit(30).get().then(snap => {
+    const tbody = document.getElementById("tabelPemanenAdmin");
+    tbody.innerHTML = "";
+    snap.forEach(doc => {
+      const d = doc.data();
+      tbody.innerHTML += `<tr>
+        <td>${d.nama}</td>
+        <td>${d.blok}</td>
+        <td>${d.jumlah}</td>
+        <td>${d.jenis}</td>
+        <td>${d.keterangan ? d.keterangan : "-"}</td>
+        <td>${d.status}</td>
+        <td>
+          <button style='background:#ff9800;margin-right:4px;' onclick="editPemanen('${doc.id}', '${d.nama}', '${d.blok}', '${d.jumlah}', '${d.jenis}', '${d.keterangan ? d.keterangan.replace(/'/g, '\\'') : ''}', '${d.status}')">Edit</button>
+          <button style='background:#c62828;' onclick="hapusPemanen('${doc.id}')">Hapus</button>
+        </td>
+      </tr>`;
+    });
+  });
+}
+function hapusPemanen(id) {
+  if(confirm('Yakin hapus data ini?')) {
+    db.collection("pemanen").doc(id).delete().then(renderPemanenAdmin);
+  }
+}
+let pemanenEditId = null;
+function editPemanen(id, nama, blok, jumlah, jenis, keterangan, status) {
+  pemanenEditId = id;
+  namaPemanen.value = nama;
+  blokPemanen.value = blok;
+  jumlahPemanen.value = jumlah;
+  jenisPemanen.value = jenis;
+  keteranganPemanen.value = keterangan;
+  statusPemanen.value = status;
+  document.getElementById("btnSimpanPemanen").innerText = "Update Pemanen";
+}
 function simpanPemanen(){
-  db.collection("pemanen").add({
-    tanggal: tanggalInput.value,
-    nama: namaPemanen.value,
-    blok: blokPemanen.value,
-    jumlah: Number(jumlahPemanen.value),
-    jenis: jenisPemanen.value,
-    keterangan: keteranganPemanen.value,
-    status: statusPemanen.value
-  }).then(()=>alert("Pemanen tersimpan"));
+  if(pemanenEditId) {
+    db.collection("pemanen").doc(pemanenEditId).update({
+      nama: namaPemanen.value,
+      blok: blokPemanen.value,
+      jumlah: Number(jumlahPemanen.value),
+      jenis: jenisPemanen.value,
+      keterangan: keteranganPemanen.value,
+      status: statusPemanen.value
+    }).then(()=>{
+      pemanenEditId = null;
+      namaPemanen.value = "";
+      blokPemanen.value = "";
+      jumlahPemanen.value = "";
+      jenisPemanen.value = "Janjang";
+      keteranganPemanen.value = "";
+      statusPemanen.value = "Selesai";
+      document.getElementById("btnSimpanPemanen").innerText = "Simpan Pemanen";
+      renderPemanenAdmin();
+    });
+  } else {
+    db.collection("pemanen").add({
+      tanggal: tanggalInput.value,
+      nama: namaPemanen.value,
+      blok: blokPemanen.value,
+      jumlah: Number(jumlahPemanen.value),
+      jenis: jenisPemanen.value,
+      keterangan: keteranganPemanen.value,
+      status: statusPemanen.value
+    }).then(()=>{
+      namaPemanen.value = "";
+      blokPemanen.value = "";
+      jumlahPemanen.value = "";
+      jenisPemanen.value = "Janjang";
+      keteranganPemanen.value = "";
+      statusPemanen.value = "Selesai";
+      renderPemanenAdmin();
+    });
+  }
 }
 
 /* ================= UPLOAD FOTO ================= */
@@ -284,22 +362,98 @@ async function uploadFoto(file,path){
 }
 
 /* ================= SEMPROT / TEBAS ================= */
+function renderKerjaAdmin() {
+  const tbody = document.getElementById("tabelKerjaAdmin");
+  tbody.innerHTML = "";
+  ["semprot","tebas"].forEach(jenis => {
+    db.collection(jenis).orderBy("tanggal","desc").limit(20).get().then(snap => {
+      snap.forEach(doc => {
+        const d = doc.data();
+        tbody.innerHTML += `<tr>
+          <td>${jenis.charAt(0).toUpperCase()+jenis.slice(1)}</td>
+          <td>${d.blok}</td>
+          <td>${d.anggota}</td>
+          <td>${d.nama ? d.nama : "-"}</td>
+          <td>${d.status}</td>
+          <td>${d.foto ? `<a href='${d.foto}' target='_blank'>Lihat</a>` : "-"}</td>
+          <td>
+            <button style='background:#ff9800;margin-right:4px;' onclick="editKerja('${doc.id}','${jenis}','${d.blok}','${d.anggota}','${d.nama ? d.nama.replace(/'/g, '\\'') : ''}','${d.status}')">Edit</button>
+            <button style='background:#c62828;' onclick="hapusKerja('${doc.id}','${jenis}')">Hapus</button>
+          </td>
+        </tr>`;
+      });
+    });
+  });
+}
+function hapusKerja(id, jenis) {
+  if(confirm('Yakin hapus data ini?')) {
+    db.collection(jenis).doc(id).delete().then(renderKerjaAdmin);
+  }
+}
+let kerjaEditId = null;
+let kerjaEditJenis = null;
+function editKerja(id, jenis, blok, anggota, nama, status) {
+  kerjaEditId = id;
+  kerjaEditJenis = jenis;
+  jenisKerja.value = jenis;
+  blokKerja.value = blok;
+  anggotaKerja.value = anggota;
+  namaTunggal.value = nama;
+  statusKerja.value = status;
+  document.getElementById("btnSimpanKerja").innerText = "Update Kerja";
+}
 async function simpanKerja(){
   const jumlah = Number(anggotaKerja.value);
-  const fotoURL = await uploadFoto(
-    fotoKerja.files[0],
-    `kerja/${jenisKerja.value}/${Date.now()}`
-  );
-
-  db.collection(jenisKerja.value).add({
-    tanggal: tanggalInput.value,
-    blok: blokKerja.value,
-    anggota: jumlah,
-    nama: jumlah === 1 ? namaTunggal.value : "",
-    status: statusKerja.value,
-    foto: fotoURL
-  }).then(()=>alert("Semprot / Tebas tersimpan"));
+  let fotoURL = "";
+  if(fotoKerja.files[0]){
+    fotoURL = await uploadFoto(
+      fotoKerja.files[0],
+      `kerja/${jenisKerja.value}/${Date.now()}`
+    );
+  }
+  if(kerjaEditId && kerjaEditJenis) {
+    db.collection(kerjaEditJenis).doc(kerjaEditId).update({
+      tanggal: tanggalInput.value,
+      blok: blokKerja.value,
+      anggota: jumlah,
+      nama: jumlah === 1 ? namaTunggal.value : "",
+      status: statusKerja.value,
+      foto: fotoURL
+    }).then(()=>{
+      kerjaEditId = null;
+      kerjaEditJenis = null;
+      jenisKerja.value = "semprot";
+      blokKerja.value = "";
+      anggotaKerja.value = "";
+      namaTunggal.value = "";
+      statusKerja.value = "Selesai";
+      document.getElementById("btnSimpanKerja").innerText = "Simpan Semprot / Tebas";
+      renderKerjaAdmin();
+    });
+  } else {
+    db.collection(jenisKerja.value).add({
+      tanggal: tanggalInput.value,
+      blok: blokKerja.value,
+      anggota: jumlah,
+      nama: jumlah === 1 ? namaTunggal.value : "",
+      status: statusKerja.value,
+      foto: fotoURL
+    }).then(()=>{
+      jenisKerja.value = "semprot";
+      blokKerja.value = "";
+      anggotaKerja.value = "";
+      namaTunggal.value = "";
+      statusKerja.value = "Selesai";
+      renderKerjaAdmin();
+    });
+  }
 }
+
+window.addEventListener('DOMContentLoaded', function() {
+  renderAbsensiAdmin();
+  renderPemanenAdmin();
+  renderKerjaAdmin();
+});
 </script>
 
 </body>
