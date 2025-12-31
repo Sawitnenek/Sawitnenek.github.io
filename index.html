@@ -4,31 +4,75 @@
 <meta charset="UTF-8">
 <title>Dashboard Mandor Sawit</title>
 
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <style>
-body{font-family:Arial;background:#f4f6f8;padding:20px}
-table{width:100%;border-collapse:collapse;background:#fff}
-th,td{border:1px solid #ccc;padding:8px}
-th{background:#e8f5e9}
+body{
+  font-family:Arial, sans-serif;
+  background:#f4f6f8;
+  padding:20px
+}
+h2{text-align:center}
+.card{
+  background:#fff;
+  padding:15px;
+  border-radius:8px;
+  margin-bottom:20px
+}
+table{
+  width:100%;
+  border-collapse:collapse
+}
+th,td{
+  border:1px solid #ccc;
+  padding:8px;
+  text-align:center
+}
+th{
+  background:#2e7d32;
+  color:white
+}
+.total{
+  font-weight:bold;
+  background:#e8f5e9
+}
 </style>
 </head>
 
 <body>
 
-<h2>📊 Rekap Bulanan Pemanen</h2>
+<h2>📊 Dashboard Laporan Sawit</h2>
 
-<input type="month" id="bulan" onchange="rekap()">
+<div class="card">
+  <label><b>Pilih Bulan:</b></label>
+  <input type="month" id="bulan">
+</div>
 
-<table>
-<thead>
-<tr><th>Nama</th><th>Total Janjang</th></tr>
-</thead>
-<tbody id="rekap"></tbody>
-</table>
+<div class="card">
+  <h3>Rekap Pemanen</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Nama</th>
+        <th>Total Janjang</th>
+        <th>Karung Brondol</th>
+      </tr>
+    </thead>
+    <tbody id="tabelPemanen"></tbody>
+    <tfoot>
+      <tr class="total">
+        <td>TOTAL</td>
+        <td id="totalJanjang">0</td>
+        <td id="totalKarung">0</td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
 
 <script>
+/* ================= FIREBASE CONFIG ================= */
 const firebaseConfig = {
   apiKey: "AIzaSyCazwLdErOX7aYw3qh8VSyOsdV5i13S3nQ",
   authDomain: "tools-mandor-sawit.firebaseapp.com",
@@ -41,23 +85,63 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-async function rekap(){
+/* ================= UTIL ================= */
+function bulanSekarang(){
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+
+/* ================= REKAP ================= */
+async function loadRekap(){
   const bulan = document.getElementById("bulan").value;
   const snap = await db.collection("pemanen").get();
-  const map = {};
+
+  const data = {};
+  let totalJanjang = 0;
+  let totalKarung = 0;
 
   snap.forEach(doc=>{
     const d = doc.data();
+    if(!d.tanggal) return;
+
     if(d.tanggal.startsWith(bulan)){
-      map[d.nama]=(map[d.nama]||0)+d.jumlah;
+      if(!data[d.nama]){
+        data[d.nama] = {janjang:0, karung:0};
+      }
+
+      if(d.jenis === "Janjang"){
+        data[d.nama].janjang += d.jumlah;
+        totalJanjang += d.jumlah;
+      }
+
+      if(d.jenis === "Brondol"){
+        data[d.nama].karung += d.jumlah;
+        totalKarung += d.jumlah;
+      }
     }
   });
 
-  rekap.innerHTML="";
-  for(const n in map){
-    rekap.innerHTML+=`<tr><td>${n}</td><td>${map[n]}</td></tr>`;
+  const tbody = document.getElementById("tabelPemanen");
+  tbody.innerHTML = "";
+
+  for(const nama in data){
+    tbody.innerHTML += `
+      <tr>
+        <td>${nama}</td>
+        <td>${data[nama].janjang}</td>
+        <td>${data[nama].karung}</td>
+      </tr>
+    `;
   }
+
+  document.getElementById("totalJanjang").innerText = totalJanjang;
+  document.getElementById("totalKarung").innerText = totalKarung;
 }
+
+/* ================= AUTO LOAD ================= */
+document.getElementById("bulan").value = bulanSekarang();
+document.getElementById("bulan").addEventListener("change", loadRekap);
+loadRekap();
 </script>
 
 </body>
