@@ -4,18 +4,40 @@
 <meta charset="UTF-8">
 <title>Admin Mandor Sawit</title>
 
-<!-- Firebase CDN -->
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
 <style>
-body{font-family:Arial;background:#f4f6f8;padding:20px}
-.card{background:#fff;padding:20px;border-radius:8px;max-width:500px;margin:auto;margin-bottom:20px}
-input,select,button{width:100%;padding:10px;margin:6px 0}
-button{background:#1b5e20;color:#fff;border:none;cursor:pointer}
-h2,h3{text-align:center}
+body{
+  font-family:"Segoe UI",Arial,sans-serif;
+  background:#f1f5f9;
+  padding:20px
+}
+h2{text-align:center}
+.card{
+  background:#fff;
+  padding:16px;
+  border-radius:10px;
+  margin-bottom:20px;
+  box-shadow:0 2px 8px rgba(0,0,0,.05)
+}
+input,select,button{
+  width:100%;
+  padding:10px;
+  margin-top:8px;
+  border-radius:6px;
+  border:1px solid #ccc
+}
+button{
+  background:#1b5e20;
+  color:#fff;
+  border:none;
+  cursor:pointer
+}
+button:hover{opacity:.9}
 </style>
 </head>
 
@@ -23,27 +45,35 @@ h2,h3{text-align:center}
 
 <!-- LOGIN -->
 <div class="card" id="loginBox">
-  <h2>Login Admin</h2>
+  <h2>🔐 Login Admin</h2>
   <input id="email" placeholder="Email">
   <input id="password" type="password" placeholder="Password">
-  <button type="button" onclick="loginUser()">LOGIN</button>
+  <button onclick="login()">LOGIN</button>
 </div>
 
 <!-- PANEL -->
 <div id="panelBox" style="display:none">
 
+  <!-- TANGGAL -->
   <div class="card">
-    <h3>Absensi</h3>
-    <input id="absenNama" placeholder="Nama">
+    <h3>📅 Tanggal Laporan</h3>
+    <input type="date" id="tanggalInput">
+  </div>
+
+  <!-- ABSENSI -->
+  <div class="card">
+    <h3>👥 Absensi</h3>
+    <input id="absenNama" placeholder="Nama Anggota">
     <select id="absenStatus">
       <option value="Hadir">Hadir</option>
       <option value="Tidak Hadir">Tidak Hadir</option>
     </select>
-    <button onclick="simpanAbsen()">Simpan Absensi</button>
+    <button onclick="simpanAbsensi()">Simpan Absensi</button>
   </div>
 
+  <!-- PEMANEN -->
   <div class="card">
-    <h3>Pemanen</h3>
+    <h3>🌴 Pemanen</h3>
     <input id="namaPemanen" placeholder="Nama">
     <input id="blokPemanen" placeholder="Blok">
     <input id="jumlahPemanen" type="number" placeholder="Jumlah">
@@ -61,16 +91,30 @@ h2,h3{text-align:center}
     <button onclick="simpanPemanen()">Simpan Pemanen</button>
   </div>
 
+  <!-- SEMPROT / TEBAS -->
   <div class="card">
-    <h3>Semprot / Tebas</h3>
+    <h3>🧪 Semprot / 🌿 Tebas</h3>
+
     <select id="jenisKerja">
       <option value="semprot">Semprot</option>
       <option value="tebas">Tebas</option>
     </select>
+
+    <input id="anggotaKerja" type="number" placeholder="Jumlah Anggota (contoh: 5)">
     <input id="blokKerja" placeholder="Blok">
+
+    <select id="statusKerja">
+      <option value="Selesai">Selesai</option>
+      <option value="Belum">Belum</option>
+    </select>
+
+    <label>Foto Before</label>
     <input type="file" id="fotoBefore">
+
+    <label>Foto After</label>
     <input type="file" id="fotoAfter">
-    <button onclick="simpanKerja()">Simpan Kerja</button>
+
+    <button onclick="simpanKerja()">Simpan Semprot / Tebas</button>
   </div>
 
   <div class="card">
@@ -80,7 +124,7 @@ h2,h3{text-align:center}
 </div>
 
 <script>
-/* ===== FIREBASE CONFIG ===== */
+/* ================= FIREBASE CONFIG ================= */
 const firebaseConfig = {
   apiKey: "AIzaSyCazwLdErOX7aYw3qh8VSyOsdV5i13S3nQ",
   authDomain: "tools-mandor-sawit.firebaseapp.com",
@@ -95,76 +139,70 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
 
-/* ===== UTIL ===== */
-function tanggalLokal(){
+/* ================= UTIL ================= */
+function today(){
   const d=new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
-/* ===== LOGIN ===== */
-function loginUser(){
-  const emailVal = document.getElementById("email").value.trim();
-  const passVal  = document.getElementById("password").value.trim();
-
-  auth.signInWithEmailAndPassword(emailVal, passVal)
+/* ================= AUTH ================= */
+function login(){
+  auth.signInWithEmailAndPassword(email.value,password.value)
     .then(()=>{
-      document.getElementById("loginBox").style.display="none";
-      document.getElementById("panelBox").style.display="block";
+      loginBox.style.display="none";
+      panelBox.style.display="block";
+      tanggalInput.value=today();
     })
-    .catch(err=>alert("Login gagal: "+err.message));
+    .catch(e=>alert(e.message));
 }
 
 function logout(){
   auth.signOut().then(()=>location.reload());
 }
 
-/* ===== ABSENSI ===== */
-function simpanAbsen(){
+/* ================= ABSENSI ================= */
+function simpanAbsensi(){
   db.collection("absensi").add({
-    tanggal: tanggalLokal(),
-    nama: absenNama.value.trim(),
+    tanggal: tanggalInput.value,
+    nama: absenNama.value,
     status: absenStatus.value
   }).then(()=>alert("Absensi tersimpan"));
 }
 
-/* ===== PEMANEN ===== */
+/* ================= PEMANEN ================= */
 function simpanPemanen(){
-  const nama   = namaPemanen.value.trim();
-  const blok   = blokPemanen.value.trim();
-  const jumlah = Number(jumlahPemanen.value);
-  const jenis  = jenisPemanen.value;
-  const status = statusPemanen.value;
-
-  if(!nama || !blok || !jumlah){
-    alert("Lengkapi data pemanen");
-    return;
-  }
-
   db.collection("pemanen").add({
-    tanggal: tanggalLokal(),
-    nama, blok, jumlah, jenis, status
-  })
-  .then(()=>alert("Pemanen tersimpan"))
-  .catch(err=>alert(err.message));
+    tanggal: tanggalInput.value,
+    nama: namaPemanen.value,
+    blok: blokPemanen.value,
+    jumlah: Number(jumlahPemanen.value),
+    jenis: jenisPemanen.value,
+    status: statusPemanen.value
+  }).then(()=>alert("Pemanen tersimpan"));
 }
 
-/* ===== UPLOAD FOTO ===== */
+/* ================= UPLOAD FOTO ================= */
 async function upload(file,path){
-  const ref = storage.ref(path);
+  if(!file) return "";
+  const ref=storage.ref(path);
   await ref.put(file);
   return await ref.getDownloadURL();
 }
 
+/* ================= SEMPROT / TEBAS ================= */
 async function simpanKerja(){
-  const before = await upload(fotoBefore.files[0],`foto/${Date.now()}_before`);
-  const after  = await upload(fotoAfter.files[0],`foto/${Date.now()}_after`);
+  const jenis=jenisKerja.value;
+  const before=await upload(fotoBefore.files[0],`kerja/${jenis}/${Date.now()}_before`);
+  const after=await upload(fotoAfter.files[0],`kerja/${jenis}/${Date.now()}_after`);
 
-  db.collection(jenisKerja.value).add({
-    tanggal: tanggalLokal(),
+  db.collection(jenis).add({
+    tanggal: tanggalInput.value,
     blok: blokKerja.value,
-    before, after,
-    status: "Selesai"
-  }).then(()=>alert("Kerja tersimpan"));
+    anggota: Number(anggotaKerja.value),
+    status: statusKerja.value,
+    before: before,
+    after: after
+  }).then(()=>alert("Semprot / Tebas tersimpan"));
 }
 </script>
 
