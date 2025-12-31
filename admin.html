@@ -198,7 +198,7 @@ function today(){
 }
 
 /* ================= AUTH ================= */
-function login(){
+window.login = function login(){
   auth.signInWithEmailAndPassword(email.value,password.value)
     .then(()=>{
       loginBox.style.display="none";
@@ -207,8 +207,7 @@ function login(){
     })
     .catch(e=>alert(e.message));
 }
-
-function logout(){
+window.logout = function logout(){
   auth.signOut().then(()=>location.reload());
 }
 
