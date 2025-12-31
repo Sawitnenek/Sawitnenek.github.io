@@ -10,67 +10,113 @@
 
 <style>
 body{
-  font-family: Arial, sans-serif;
-  background:#f4f6f8;
-  padding:20px
+  font-family: "Segoe UI", Arial, sans-serif;
+  background:#f1f5f9;
+  padding:20px;
+  color:#333
 }
-h2{text-align:center}
+h2{
+  text-align:center;
+  margin-bottom:10px
+}
+.subtitle{
+  text-align:center;
+  color:#666;
+  margin-bottom:20px
+}
 .card{
   background:#fff;
-  padding:15px;
-  border-radius:8px;
-  margin-bottom:20px
+  padding:16px;
+  border-radius:10px;
+  margin-bottom:20px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.05)
+}
+.filter{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  align-items:center
+}
+input[type="date"]{
+  padding:8px 12px;
+  border-radius:6px;
+  border:1px solid #ccc
 }
 table{
   width:100%;
-  border-collapse:collapse
+  border-collapse:collapse;
+  margin-top:10px
 }
 th,td{
-  border:1px solid #ccc;
-  padding:8px;
+  padding:10px;
+  border-bottom:1px solid #e0e0e0;
   text-align:center
 }
 th{
-  background:#2e7d32;
+  background:#1b5e20;
   color:#fff
+}
+tr:hover{
+  background:#f9fbe7
 }
 tfoot td{
   font-weight:bold;
   background:#e8f5e9
 }
-.status-selesai{color:green;font-weight:bold}
-.status-belum{color:red;font-weight:bold}
+.status-selesai{
+  color:#2e7d32;
+  font-weight:bold
+}
+.status-belum{
+  color:#c62828;
+  font-weight:bold
+}
+.badge{
+  padding:4px 8px;
+  border-radius:12px;
+  font-size:13px
+}
+.badge-selesai{
+  background:#c8e6c9;
+  color:#1b5e20
+}
+.badge-belum{
+  background:#ffcdd2;
+  color:#b71c1c
+}
 </style>
 </head>
 
 <body>
 
 <h2>📊 Dashboard Laporan Sawit</h2>
+<div class="subtitle">Laporan Harian Pemanen</div>
 
 <div class="card">
-  <label><b>Pilih Bulan:</b></label>
-  <input type="month" id="bulan">
+  <div class="filter">
+    <b>Pilih Tanggal:</b>
+    <input type="date" id="tanggal">
+  </div>
 </div>
 
 <div class="card">
-  <h3>Rekap Pemanen</h3>
   <table>
     <thead>
       <tr>
-        <th>Tanggal</th>
         <th>Nama</th>
         <th>Blok</th>
-        <th>Status</th>
         <th>Janjang</th>
         <th>Karung Brondol</th>
+        <th>Status</th>
       </tr>
     </thead>
     <tbody id="tabelPemanen"></tbody>
     <tfoot>
       <tr>
-        <td colspan="4">TOTAL</td>
+        <td colspan="2">TOTAL</td>
         <td id="totalJanjang">0</td>
         <td id="totalKarung">0</td>
+        <td></td>
       </tr>
     </tfoot>
   </table>
@@ -91,14 +137,14 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 /* ================= UTIL ================= */
-function bulanSekarang(){
+function tanggalHariIni(){
   const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
-/* ================= LOAD REKAP ================= */
-async function loadRekap(){
-  const bulan = document.getElementById("bulan").value;
+/* ================= LOAD DATA ================= */
+async function loadData(){
+  const tanggal = document.getElementById("tanggal").value;
   const snap = await db.collection("pemanen").get();
 
   let totalJanjang = 0;
@@ -109,10 +155,7 @@ async function loadRekap(){
 
   snap.forEach(doc=>{
     const d = doc.data();
-    if(!d.tanggal) return;
-
-    // FILTER BULAN
-    if(d.tanggal.startsWith(bulan)){
+    if(d.tanggal === tanggal){
       let janjang = 0;
       let karung = 0;
 
@@ -126,16 +169,17 @@ async function loadRekap(){
         totalKarung += d.jumlah;
       }
 
-      const statusClass = d.status === "Selesai" ? "status-selesai" : "status-belum";
+      const badge = d.status === "Selesai"
+        ? `<span class="badge badge-selesai">Selesai</span>`
+        : `<span class="badge badge-belum">Belum</span>`;
 
       tbody.innerHTML += `
         <tr>
-          <td>${d.tanggal}</td>
           <td>${d.nama}</td>
           <td>${d.blok}</td>
-          <td class="${statusClass}">${d.status}</td>
           <td>${janjang}</td>
           <td>${karung}</td>
+          <td>${badge}</td>
         </tr>
       `;
     }
@@ -146,9 +190,9 @@ async function loadRekap(){
 }
 
 /* ================= AUTO LOAD ================= */
-document.getElementById("bulan").value = bulanSekarang();
-document.getElementById("bulan").addEventListener("change", loadRekap);
-loadRekap();
+document.getElementById("tanggal").value = tanggalHariIni();
+document.getElementById("tanggal").addEventListener("change", loadData);
+loadData();
 </script>
 
 </body>
