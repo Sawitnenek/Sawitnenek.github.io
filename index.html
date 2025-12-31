@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard Mandor Sawit</title>
+
+  <!-- Firebase CDN -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    body { font-family: Arial, sans-serif; background:#f4f6f8; margin:0; }
+    header { background:#1b5e20; color:#fff; padding:15px; text-align:center; }
+    .container { padding:20px; }
+    .card { background:#fff; padding:15px; border-radius:8px; margin-bottom:20px; }
+    table { width:100%; border-collapse:collapse; }
+    th, td { border:1px solid #ddd; padding:8px; }
+    th { background:#e8f5e9; }
+    .selesai { color:green; font-weight:bold; }
+    .belum { color:red; font-weight:bold; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🌴 DASHBOARD LAPORAN MANDOR SAWIT</h1>
+  <p>Monitoring Harian – View Only</p>
+</header>
+
+<div class="container">
+
+  <div style="text-align:center;margin-bottom:20px;">
+    <label><b>Tanggal:</b></label>
+    <input type="date" id="tanggal">
+  </div>
+
+  <div class="card">
+    <h3>🌴 Laporan Pemanen</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Nama</th>
+          <th>Blok</th>
+          <th>Jumlah</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="pemanen"></tbody>
+    </table>
+    <p><b id="total"></b></p>
+  </div>
+
+</div>
+
+<script>
+  // 🔥 Firebase Config (PUNYA ANDA)
+  const firebaseConfig = {
+    apiKey: "AIzaSyCazwLdErOX7aYw3qh8VSyOsdV5i13S3nQ",
+    authDomain: "tools-mandor-sawit.firebaseapp.com",
+    projectId: "tools-mandor-sawit",
+    storageBucket: "tools-mandor-sawit.firebasestorage.app",
+    messagingSenderId: "627595048726",
+    appId: "1:627595048726:web:3722898b86cd2474634237"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  const tanggalInput = document.getElementById("tanggal");
+  tanggalInput.value = new Date().toISOString().split("T")[0];
+  tanggalInput.addEventListener("change", loadData);
+
+  async function loadData() {
+    const tgl = tanggalInput.value;
+    const snap = await db.collection("pemanen")
+      .where("tanggal","==",tgl)
+      .get();
+
+    let html = "";
+    let totalJanjang = 0;
+    let totalKarung = 0;
+
+    snap.forEach(doc => {
+      const d = doc.data();
+      if (d.jenis === "Janjang") totalJanjang += d.jumlah;
+      if (d.jenis === "Brondol") totalKarung += d.jumlah;
+
+      html += `
+        <tr>
+          <td>${d.nama}</td>
+          <td>${d.blok}</td>
+          <td>${d.jumlah}${d.jenis === "Brondol" ? " Karung" : ""}</td>
+          <td class="${d.status === "Selesai" ? "selesai" : "belum"}">
+            ${d.status}
+          </td>
+        </tr>`;
+    });
+
+    document.getElementById("pemanen").innerHTML = html;
+    document.getElementById("total").innerText =
+      `JUMLAH = ${totalJanjang} + ${totalKarung} KARUNG`;
+  }
+
+  loadData();
+</script>
+
+</body>
+</html>
