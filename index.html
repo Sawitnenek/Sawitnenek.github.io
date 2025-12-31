@@ -64,6 +64,11 @@ tfoot td{
 .badge-belum{background:#ffcdd2;color:#b71c1c}
 .badge-hadir{background:#bbdefb;color:#0d47a1}
 .badge-tidak{background:#eeeeee;color:#424242}
+img{
+  max-width:120px;
+  border-radius:6px;
+  margin:4px
+}
 </style>
 </head>
 
@@ -72,7 +77,7 @@ tfoot td{
 <h2>📊 Dashboard Laporan Sawit</h2>
 <div class="subtitle">Laporan Harian Kebun</div>
 
-<!-- FILTER TANGGAL -->
+<!-- FILTER -->
 <div class="card">
   <div class="filter">
     <b>Pilih Tanggal:</b>
@@ -85,10 +90,7 @@ tfoot td{
   <h3>👥 Absensi Anggota</h3>
   <table>
     <thead>
-      <tr>
-        <th>Nama</th>
-        <th>Status</th>
-      </tr>
+      <tr><th>Nama</th><th>Status</th></tr>
     </thead>
     <tbody id="tabelAbsensi"></tbody>
   </table>
@@ -119,8 +121,40 @@ tfoot td{
   </table>
 </div>
 
+<!-- SEMPROT -->
+<div class="card">
+  <h3>🧪 Semprot</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Blok</th>
+        <th>Before</th>
+        <th>After</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="tabelSemprot"></tbody>
+  </table>
+</div>
+
+<!-- TEBAS -->
+<div class="card">
+  <h3>🌿 Tebas</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Blok</th>
+        <th>Before</th>
+        <th>After</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="tabelTebas"></tbody>
+  </table>
+</div>
+
 <script>
-/* ================= FIREBASE CONFIG ================= */
+/* ===== FIREBASE ===== */
 const firebaseConfig = {
   apiKey: "AIzaSyCazwLdErOX7aYw3qh8VSyOsdV5i13S3nQ",
   authDomain: "tools-mandor-sawit.firebaseapp.com",
@@ -129,83 +163,90 @@ const firebaseConfig = {
   messagingSenderId: "627595048726",
   appId: "1:627595048726:web:3722898b86cd2474634237"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-/* ================= UTIL ================= */
-function tanggalHariIni(){
+/* ===== UTIL ===== */
+function today(){
   const d=new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
-/* ================= LOAD ABSENSI ================= */
-async function loadAbsensi(tanggal){
-  const snap = await db.collection("absensi").get();
-  const tbody = document.getElementById("tabelAbsensi");
-  tbody.innerHTML="";
-
+/* ===== ABSENSI ===== */
+async function loadAbsensi(t){
+  const snap=await db.collection("absensi").get();
+  tabelAbsensi.innerHTML="";
   snap.forEach(doc=>{
     const d=doc.data();
-    if(d.tanggal===tanggal){
-      const badge = d.status==="Hadir"
-        ? `<span class="badge badge-hadir">Hadir</span>`
-        : `<span class="badge badge-tidak">Tidak Hadir</span>`;
-
-      tbody.innerHTML+=`
-        <tr>
-          <td>${d.nama}</td>
-          <td>${badge}</td>
-        </tr>`;
+    if(d.tanggal===t){
+      const b=d.status==="Hadir"
+        ?`<span class="badge badge-hadir">Hadir</span>`
+        :`<span class="badge badge-tidak">Tidak</span>`;
+      tabelAbsensi.innerHTML+=`<tr><td>${d.nama}</td><td>${b}</td></tr>`;
     }
   });
 }
 
-/* ================= LOAD PEMANEN ================= */
-async function loadPemanen(tanggal){
-  const snap = await db.collection("pemanen").get();
-  const tbody = document.getElementById("tabelPemanen");
-  tbody.innerHTML="";
-
-  let totalJanjang=0, totalKarung=0;
+/* ===== PEMANEN ===== */
+async function loadPemanen(t){
+  const snap=await db.collection("pemanen").get();
+  tabelPemanen.innerHTML="";
+  let tj=0,tk=0;
 
   snap.forEach(doc=>{
     const d=doc.data();
-    if(d.tanggal===tanggal){
-      let janjang=0, karung=0;
-
-      if(d.jenis==="Janjang"){janjang=d.jumlah; totalJanjang+=d.jumlah;}
-      if(d.jenis==="Brondol"){karung=d.jumlah; totalKarung+=d.jumlah;}
-
-      const badge = d.status==="Selesai"
-        ? `<span class="badge badge-selesai">Selesai</span>`
-        : `<span class="badge badge-belum">Belum</span>`;
-
-      tbody.innerHTML+=`
+    if(d.tanggal===t){
+      let j=0,k=0;
+      if(d.jenis==="Janjang"){j=d.jumlah;tj+=d.jumlah;}
+      if(d.jenis==="Brondol"){k=d.jumlah;tk+=d.jumlah;}
+      const b=d.status==="Selesai"
+        ?`<span class="badge badge-selesai">Selesai</span>`
+        :`<span class="badge badge-belum">Belum</span>`;
+      tabelPemanen.innerHTML+=`
         <tr>
           <td>${d.nama}</td>
           <td>${d.blok}</td>
-          <td>${janjang}</td>
-          <td>${karung}</td>
-          <td>${badge}</td>
+          <td>${j}</td>
+          <td>${k}</td>
+          <td>${b}</td>
         </tr>`;
     }
   });
-
-  totalJanjang.innerText=totalJanjang;
-  totalKarung.innerText=totalKarung;
+  totalJanjang.innerText=tj;
+  totalKarung.innerText=tk;
 }
 
-/* ================= LOAD ALL ================= */
+/* ===== SEMPROT / TEBAS ===== */
+async function loadKerja(col,tbodyId,t){
+  const snap=await db.collection(col).get();
+  const tb=document.getElementById(tbodyId);
+  tb.innerHTML="";
+  snap.forEach(doc=>{
+    const d=doc.data();
+    if(d.tanggal===t){
+      tb.innerHTML+=`
+      <tr>
+        <td>${d.blok}</td>
+        <td><img src="${d.before}"></td>
+        <td><img src="${d.after}"></td>
+        <td><span class="badge badge-selesai">Selesai</span></td>
+      </tr>`;
+    }
+  });
+}
+
+/* ===== LOAD ALL ===== */
 function loadAll(){
-  const tanggal=document.getElementById("tanggal").value;
-  loadAbsensi(tanggal);
-  loadPemanen(tanggal);
+  const t=tanggal.value;
+  loadAbsensi(t);
+  loadPemanen(t);
+  loadKerja("semprot","tabelSemprot",t);
+  loadKerja("tebas","tabelTebas",t);
 }
 
-/* ================= AUTO ================= */
-document.getElementById("tanggal").value=tanggalHariIni();
-document.getElementById("tanggal").addEventListener("change",loadAll);
+/* ===== INIT ===== */
+tanggal.value=today();
+tanggal.addEventListener("change",loadAll);
 loadAll();
 </script>
 
