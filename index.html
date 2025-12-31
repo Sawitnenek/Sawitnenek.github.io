@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Dashboard Mandor Sawit</title>
+<title>Dashboard Laporan Sawit</title>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -10,7 +10,7 @@
 
 <style>
 body{
-  font-family:Arial, sans-serif;
+  font-family: Arial, sans-serif;
   background:#f4f6f8;
   padding:20px
 }
@@ -32,9 +32,9 @@ th,td{
 }
 th{
   background:#2e7d32;
-  color:white
+  color:#fff
 }
-.total{
+tfoot td{
   font-weight:bold;
   background:#e8f5e9
 }
@@ -56,14 +56,15 @@ th{
     <thead>
       <tr>
         <th>Nama</th>
-        <th>Total Janjang</th>
+        <th>Blok</th>
+        <th>Janjang</th>
         <th>Karung Brondol</th>
       </tr>
     </thead>
     <tbody id="tabelPemanen"></tbody>
     <tfoot>
-      <tr class="total">
-        <td>TOTAL</td>
+      <tr>
+        <td colspan="2">TOTAL</td>
         <td id="totalJanjang">0</td>
         <td id="totalKarung">0</td>
       </tr>
@@ -91,48 +92,45 @@ function bulanSekarang(){
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
 }
 
-/* ================= REKAP ================= */
+/* ================= LOAD REKAP ================= */
 async function loadRekap(){
   const bulan = document.getElementById("bulan").value;
   const snap = await db.collection("pemanen").get();
 
-  const data = {};
   let totalJanjang = 0;
   let totalKarung = 0;
+
+  const tbody = document.getElementById("tabelPemanen");
+  tbody.innerHTML = "";
 
   snap.forEach(doc=>{
     const d = doc.data();
     if(!d.tanggal) return;
 
     if(d.tanggal.startsWith(bulan)){
-      if(!data[d.nama]){
-        data[d.nama] = {janjang:0, karung:0};
-      }
+      let janjang = 0;
+      let karung = 0;
 
       if(d.jenis === "Janjang"){
-        data[d.nama].janjang += d.jumlah;
+        janjang = d.jumlah;
         totalJanjang += d.jumlah;
       }
 
       if(d.jenis === "Brondol"){
-        data[d.nama].karung += d.jumlah;
+        karung = d.jumlah;
         totalKarung += d.jumlah;
       }
+
+      tbody.innerHTML += `
+        <tr>
+          <td>${d.nama}</td>
+          <td>${d.blok}</td>
+          <td>${janjang}</td>
+          <td>${karung}</td>
+        </tr>
+      `;
     }
   });
-
-  const tbody = document.getElementById("tabelPemanen");
-  tbody.innerHTML = "";
-
-  for(const nama in data){
-    tbody.innerHTML += `
-      <tr>
-        <td>${nama}</td>
-        <td>${data[nama].janjang}</td>
-        <td>${data[nama].karung}</td>
-      </tr>
-    `;
-  }
 
   document.getElementById("totalJanjang").innerText = totalJanjang;
   document.getElementById("totalKarung").innerText = totalKarung;
