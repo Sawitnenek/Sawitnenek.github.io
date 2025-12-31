@@ -1,68 +1,73 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Admin Mandor Sawit</title>
+<title>Admin Panel Mandor Sawit</title>
 
+<!-- Firebase CDN -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
 <style>
-body{font-family:Arial;padding:20px}
-input,select,button{width:100%;margin:5px 0;padding:8px}
-h3{margin-top:30px}
+body{font-family:Arial;background:#f4f6f8;padding:20px}
+.card{background:#fff;padding:20px;border-radius:8px;max-width:500px;margin:auto}
+input,select,button{width:100%;padding:10px;margin:6px 0}
+button{background:#1b5e20;color:#fff;border:none;cursor:pointer}
+h2,h3{text-align:center}
 </style>
 </head>
+
 <body>
 
-<h2>ADMIN PANEL MANDOR</h2>
-
-<!-- LOGIN -->
-<div id="login">
+<div class="card" id="loginBox">
+  <h2>LOGIN ADMIN</h2>
   <input id="email" placeholder="Email">
   <input id="password" type="password" placeholder="Password">
-  <button onclick="login()">LOGIN</button>
+  <button type="button" onclick="loginUser()">LOGIN</button>
 </div>
 
-<div id="panel" style="display:none">
+<div class="card" id="panelBox" style="display:none">
+  <h2>ADMIN PANEL</h2>
 
-<h3>1️⃣ ABSENSI</h3>
-<input id="absenNama" placeholder="Nama">
-<select id="absenStatus">
-  <option>Hadir</option>
-  <option>Tidak Hadir</option>
-</select>
-<button onclick="simpanAbsen()">Simpan Absen</button>
+  <h3>Absensi</h3>
+  <input id="absenNama" placeholder="Nama">
+  <select id="absenStatus">
+    <option>Hadir</option>
+    <option>Tidak Hadir</option>
+  </select>
+  <button onclick="simpanAbsen()">Simpan Absen</button>
 
-<h3>2️⃣ PEMANEN</h3>
-<input id="nama">
-<input id="blok">
-<input id="jumlah" type="number">
-<select id="jenis">
-  <option>Janjang</option>
-  <option>Brondol</option>
-</select>
-<select id="status">
-  <option>Selesai</option>
-  <option>Belum</option>
-</select>
-<button onclick="simpanPemanen()">Simpan Pemanen</button>
+  <h3>Pemanen</h3>
+  <input id="nama" placeholder="Nama">
+  <input id="blok" placeholder="Blok">
+  <input id="jumlah" type="number" placeholder="Jumlah">
+  <select id="jenis">
+    <option>Janjang</option>
+    <option>Brondol</option>
+  </select>
+  <select id="status">
+    <option>Selesai</option>
+    <option>Belum</option>
+  </select>
+  <button onclick="simpanPemanen()">Simpan Pemanen</button>
 
-<h3>3️⃣ SEMPROT / TEBAS</h3>
-<select id="jenisKerja">
-  <option>Semprot</option>
-  <option>Tebas</option>
-</select>
-<input id="blokKerja" placeholder="Blok">
-<input type="file" id="fotoBefore">
-<input type="file" id="fotoAfter">
-<button onclick="simpanKerja()">Simpan Kerja</button>
+  <h3>Semprot / Tebas</h3>
+  <select id="jenisKerja">
+    <option>Semprot</option>
+    <option>Tebas</option>
+  </select>
+  <input id="blokKerja" placeholder="Blok">
+  <input type="file" id="fotoBefore">
+  <input type="file" id="fotoAfter">
+  <button onclick="simpanKerja()">Simpan Kerja</button>
 
+  <button onclick="logout()">LOGOUT</button>
 </div>
 
 <script>
+/* 🔥 FIREBASE CONFIG (PUNYA ANDA) */
 const firebaseConfig = {
   apiKey: "AIzaSyCazwLdErOX7aYw3qh8VSyOsdV5i13S3nQ",
   authDomain: "tools-mandor-sawit.firebaseapp.com",
@@ -77,57 +82,75 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
 
-function tanggal() {
-  const d=new Date();
-  return `${d.getFullYear()}-${(d.getMonth()+1+'').padStart(2,0)}-${(d.getDate()+'').padStart(2,0)}`;
+/* ===== UTIL ===== */
+function tanggalLokal(){
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
-function login(){
-  auth.signInWithEmailAndPassword(email.value,password.value)
-  .then(()=>{
-    login.style.display="none";
-    panel.style.display="block";
-  }).catch(e=>alert(e.message));
+/* ===== LOGIN ===== */
+function loginUser(){
+  const emailVal = document.getElementById("email").value.trim();
+  const passVal  = document.getElementById("password").value.trim();
+
+  auth.signInWithEmailAndPassword(emailVal, passVal)
+    .then(()=>{
+      document.getElementById("loginBox").style.display="none";
+      document.getElementById("panelBox").style.display="block";
+    })
+    .catch(err=>{
+      alert("LOGIN GAGAL: " + err.message);
+      console.error(err);
+    });
 }
 
+function logout(){
+  auth.signOut().then(()=>{
+    location.reload();
+  });
+}
+
+/* ===== ABSENSI ===== */
 function simpanAbsen(){
   db.collection("absensi").add({
-    tanggal:tanggal(),
-    nama:absenNama.value,
-    status:absenStatus.value
-  });
+    tanggal: tanggalLokal(),
+    nama: absenNama.value,
+    status: absenStatus.value
+  }).then(()=>alert("Absen tersimpan"));
 }
 
+/* ===== PEMANEN ===== */
 function simpanPemanen(){
   db.collection("pemanen").add({
-    tanggal:tanggal(),
-    nama:nama.value,
-    blok:blok.value,
-    jumlah:+jumlah.value,
-    jenis:jenis.value,
-    status:status.value
-  });
+    tanggal: tanggalLokal(),
+    nama: nama.value,
+    blok: blok.value,
+    jumlah: Number(jumlah.value),
+    jenis: jenis.value,
+    status: status.value
+  }).then(()=>alert("Data pemanen tersimpan"));
 }
 
-async function upload(file,path){
-  const ref=storage.ref(path);
+/* ===== UPLOAD FOTO ===== */
+async function uploadFile(file,path){
+  const ref = storage.ref(path);
   await ref.put(file);
   return await ref.getDownloadURL();
 }
 
 async function simpanKerja(){
-  const before=await upload(fotoBefore.files[0],`foto/${Date.now()}_before`);
-  const after=await upload(fotoAfter.files[0],`foto/${Date.now()}_after`);
+  const before = await uploadFile(fotoBefore.files[0], `foto/${Date.now()}_before`);
+  const after  = await uploadFile(fotoAfter.files[0], `foto/${Date.now()}_after`);
 
-  const col = jenisKerja.value=="Semprot"?"semprot":"tebas";
+  const col = jenisKerja.value === "Semprot" ? "semprot" : "tebas";
 
   db.collection(col).add({
-    tanggal:tanggal(),
-    blok:blokKerja.value,
+    tanggal: tanggalLokal(),
+    blok: blokKerja.value,
     before,
     after,
-    status:"Selesai"
-  });
+    status: "Selesai"
+  }).then(()=>alert("Kerja tersimpan"));
 }
 </script>
 
