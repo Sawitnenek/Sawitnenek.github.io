@@ -42,6 +42,7 @@ label{
   font-size:14px;
   color:#555
 }
+.hidden{display:none}
 </style>
 </head>
 
@@ -104,7 +105,12 @@ label{
       <option value="tebas">Tebas</option>
     </select>
 
-    <input id="anggotaKerja" type="number" placeholder="Jumlah Anggota (contoh: 5)">
+    <input id="anggotaKerja" type="number" placeholder="Jumlah Anggota" oninput="cekAnggota()">
+
+    <div id="namaTunggalBox" class="hidden">
+      <input id="namaTunggal" placeholder="Nama Anggota">
+    </div>
+
     <input id="blokKerja" placeholder="Blok">
 
     <select id="statusKerja">
@@ -161,6 +167,12 @@ function logout(){
   auth.signOut().then(()=>location.reload());
 }
 
+/* ================= LOGIC ANGGOTA ================= */
+function cekAnggota(){
+  const jumlah = Number(anggotaKerja.value);
+  document.getElementById("namaTunggalBox").classList.toggle("hidden", jumlah !== 1);
+}
+
 /* ================= ABSENSI ================= */
 function simpanAbsensi(){
   db.collection("absensi").add({
@@ -192,17 +204,17 @@ async function uploadFoto(file,path){
 
 /* ================= SEMPROT / TEBAS ================= */
 async function simpanKerja(){
-  const jenis = jenisKerja.value;
-  const fotoFile = fotoKerja.files[0];
+  const jumlah = Number(anggotaKerja.value);
   const fotoURL = await uploadFoto(
-    fotoFile,
-    `kerja/${jenis}/${Date.now()}`
+    fotoKerja.files[0],
+    `kerja/${jenisKerja.value}/${Date.now()}`
   );
 
-  db.collection(jenis).add({
+  db.collection(jenisKerja.value).add({
     tanggal: tanggalInput.value,
     blok: blokKerja.value,
-    anggota: Number(anggotaKerja.value),
+    anggota: jumlah,
+    nama: jumlah === 1 ? namaTunggal.value : "",
     status: statusKerja.value,
     foto: fotoURL
   }).then(()=>alert("Semprot / Tebas tersimpan"));
