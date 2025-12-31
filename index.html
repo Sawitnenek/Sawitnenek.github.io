@@ -1,31 +1,36 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
 <meta charset="UTF-8">
 <title>Dashboard Mandor Sawit</title>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <style>
-body{font-family:Arial;padding:20px}
+body{font-family:Arial;background:#f4f6f8;padding:20px}
+.card{background:#fff;padding:15px;border-radius:8px}
 table{width:100%;border-collapse:collapse}
-td,th{border:1px solid #ccc;padding:6px}
+th,td{border:1px solid #ccc;padding:8px}
+th{background:#e8f5e9}
 </style>
 </head>
+
 <body>
 
-<h2>DASHBOARD LAPORAN</h2>
+<h2>📊 DASHBOARD LAPORAN</h2>
 
-<input type="month" id="bulan" onchange="rekap()">
+<label>Pilih Bulan:</label>
+<input type="month" id="bulan" onchange="rekapBulanan()">
 
-<table>
-<thead>
-<tr><th>Nama</th><th>Total Janjang</th></tr>
-</thead>
-<tbody id="rekap"></tbody>
-</table>
+<div class="card">
+  <table>
+    <thead>
+      <tr><th>Nama</th><th>Total Janjang</th></tr>
+    </thead>
+    <tbody id="rekap"></tbody>
+  </table>
+</div>
 
 <script>
 const firebaseConfig = {
@@ -38,23 +43,24 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
-const db=firebase.firestore();
+const db = firebase.firestore();
 
-async function rekap(){
-  const b=bulan.value;
-  const snap=await db.collection("pemanen").get();
-  const map={};
+async function rekapBulanan(){
+  const bulan = document.getElementById("bulan").value;
+  const snap = await db.collection("pemanen").get();
+  const map = {};
 
-  snap.forEach(d=>{
-    const x=d.data();
-    if(x.tanggal.startsWith(b)){
-      map[x.nama]=(map[x.nama]||0)+x.jumlah;
+  snap.forEach(doc=>{
+    const d = doc.data();
+    if(d.tanggal.startsWith(bulan)){
+      map[d.nama] = (map[d.nama] || 0) + d.jumlah;
     }
   });
 
-  rekap.innerHTML="";
-  for(let n in map){
-    rekap.innerHTML+=`<tr><td>${n}</td><td>${map[n]}</td></tr>`;
+  const tbody = document.getElementById("rekap");
+  tbody.innerHTML = "";
+  for(const nama in map){
+    tbody.innerHTML += `<tr><td>${nama}</td><td>${map[nama]}</td></tr>`;
   }
 }
 </script>
