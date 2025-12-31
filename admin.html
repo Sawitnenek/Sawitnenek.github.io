@@ -1,73 +1,134 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Admin Mandor Sawit</title>
+<meta charset="UTF-8">
+<title>Admin Mandor Sawit</title>
 
-  <!-- Firebase CDN -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
-  <style>
-    body { font-family:Arial; padding:20px; }
-    input, select, button { margin-bottom:10px; width:100%; padding:8px; }
-    button { background:#1b5e20; color:#fff; border:none; cursor:pointer; }
-  </style>
+<style>
+body{font-family:Arial;padding:20px}
+input,select,button{width:100%;margin:5px 0;padding:8px}
+h3{margin-top:30px}
+</style>
 </head>
 <body>
 
-<h2>ADMIN INPUT LAPORAN PEMANEN</h2>
+<h2>ADMIN PANEL MANDOR</h2>
 
-<label>Nama</label>
+<!-- LOGIN -->
+<div id="login">
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+  <button onclick="login()">LOGIN</button>
+</div>
+
+<div id="panel" style="display:none">
+
+<h3>1️⃣ ABSENSI</h3>
+<input id="absenNama" placeholder="Nama">
+<select id="absenStatus">
+  <option>Hadir</option>
+  <option>Tidak Hadir</option>
+</select>
+<button onclick="simpanAbsen()">Simpan Absen</button>
+
+<h3>2️⃣ PEMANEN</h3>
 <input id="nama">
-
-<label>Blok</label>
 <input id="blok">
-
-<label>Jumlah</label>
 <input id="jumlah" type="number">
-
-<label>Jenis</label>
 <select id="jenis">
   <option>Janjang</option>
   <option>Brondol</option>
 </select>
-
-<label>Status</label>
 <select id="status">
   <option>Selesai</option>
   <option>Belum</option>
 </select>
+<button onclick="simpanPemanen()">Simpan Pemanen</button>
 
-<button onclick="simpan()">SIMPAN</button>
+<h3>3️⃣ SEMPROT / TEBAS</h3>
+<select id="jenisKerja">
+  <option>Semprot</option>
+  <option>Tebas</option>
+</select>
+<input id="blokKerja" placeholder="Blok">
+<input type="file" id="fotoBefore">
+<input type="file" id="fotoAfter">
+<button onclick="simpanKerja()">Simpan Kerja</button>
+
+</div>
 
 <script>
-  // 🔥 Firebase Config (PUNYA ANDA)
-  const firebaseConfig = {
-    apiKey: "AIzaSyCazwLdErOX7aYw3qh8VSyOsdV5i13S3nQ",
-    authDomain: "tools-mandor-sawit.firebaseapp.com",
-    projectId: "tools-mandor-sawit",
-    storageBucket: "tools-mandor-sawit.firebasestorage.app",
-    messagingSenderId: "627595048726",
-    appId: "1:627595048726:web:3722898b86cd2474634237"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyCazwLdErOX7aYw3qh8VSyOsdV5i13S3nQ",
+  authDomain: "tools-mandor-sawit.firebaseapp.com",
+  projectId: "tools-mandor-sawit",
+  storageBucket: "tools-mandor-sawit.firebasestorage.app",
+  messagingSenderId: "627595048726",
+  appId: "1:627595048726:web:3722898b86cd2474634237"
+};
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const storage = firebase.storage();
 
-  function simpan() {
-    db.collection("pemanen").add({
-      tanggal: new Date().toISOString().split("T")[0],
-      nama: nama.value,
-      blok: blok.value,
-      jumlah: Number(jumlah.value),
-      jenis: jenis.value,
-      status: status.value
-    }).then(() => {
-      alert("Data berhasil disimpan");
-      nama.value = blok.value = jumlah.value = "";
-    });
-  }
+function tanggal() {
+  const d=new Date();
+  return `${d.getFullYear()}-${(d.getMonth()+1+'').padStart(2,0)}-${(d.getDate()+'').padStart(2,0)}`;
+}
+
+function login(){
+  auth.signInWithEmailAndPassword(email.value,password.value)
+  .then(()=>{
+    login.style.display="none";
+    panel.style.display="block";
+  }).catch(e=>alert(e.message));
+}
+
+function simpanAbsen(){
+  db.collection("absensi").add({
+    tanggal:tanggal(),
+    nama:absenNama.value,
+    status:absenStatus.value
+  });
+}
+
+function simpanPemanen(){
+  db.collection("pemanen").add({
+    tanggal:tanggal(),
+    nama:nama.value,
+    blok:blok.value,
+    jumlah:+jumlah.value,
+    jenis:jenis.value,
+    status:status.value
+  });
+}
+
+async function upload(file,path){
+  const ref=storage.ref(path);
+  await ref.put(file);
+  return await ref.getDownloadURL();
+}
+
+async function simpanKerja(){
+  const before=await upload(fotoBefore.files[0],`foto/${Date.now()}_before`);
+  const after=await upload(fotoAfter.files[0],`foto/${Date.now()}_after`);
+
+  const col = jenisKerja.value=="Semprot"?"semprot":"tebas";
+
+  db.collection(col).add({
+    tanggal:tanggal(),
+    blok:blokKerja.value,
+    before,
+    after,
+    status:"Selesai"
+  });
+}
 </script>
 
 </body>
