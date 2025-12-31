@@ -10,32 +10,25 @@
 
 <style>
 body{
-  font-family: "Segoe UI", Arial, sans-serif;
+  font-family:"Segoe UI",Arial,sans-serif;
   background:#f1f5f9;
   padding:20px;
   color:#333
 }
-h2{
-  text-align:center;
-  margin-bottom:10px
-}
-.subtitle{
-  text-align:center;
-  color:#666;
-  margin-bottom:20px
-}
+h2{text-align:center;margin-bottom:5px}
+.subtitle{text-align:center;color:#666;margin-bottom:20px}
 .card{
   background:#fff;
   padding:16px;
   border-radius:10px;
   margin-bottom:20px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.05)
+  box-shadow:0 2px 8px rgba(0,0,0,.05)
 }
 .filter{
   display:flex;
   justify-content:center;
-  gap:10px;
-  align-items:center
+  align-items:center;
+  gap:10px
 }
 input[type="date"]{
   padding:8px 12px;
@@ -56,42 +49,30 @@ th{
   background:#1b5e20;
   color:#fff
 }
-tr:hover{
-  background:#f9fbe7
-}
+tr:hover{background:#f9fbe7}
 tfoot td{
   font-weight:bold;
   background:#e8f5e9
 }
-.status-selesai{
-  color:#2e7d32;
-  font-weight:bold
-}
-.status-belum{
-  color:#c62828;
-  font-weight:bold
-}
 .badge{
-  padding:4px 8px;
+  padding:4px 10px;
   border-radius:12px;
-  font-size:13px
+  font-size:13px;
+  font-weight:bold
 }
-.badge-selesai{
-  background:#c8e6c9;
-  color:#1b5e20
-}
-.badge-belum{
-  background:#ffcdd2;
-  color:#b71c1c
-}
+.badge-selesai{background:#c8e6c9;color:#1b5e20}
+.badge-belum{background:#ffcdd2;color:#b71c1c}
+.badge-hadir{background:#bbdefb;color:#0d47a1}
+.badge-tidak{background:#eeeeee;color:#424242}
 </style>
 </head>
 
 <body>
 
 <h2>📊 Dashboard Laporan Sawit</h2>
-<div class="subtitle">Laporan Harian Pemanen</div>
+<div class="subtitle">Laporan Harian Kebun</div>
 
+<!-- FILTER TANGGAL -->
 <div class="card">
   <div class="filter">
     <b>Pilih Tanggal:</b>
@@ -99,7 +80,23 @@ tfoot td{
   </div>
 </div>
 
+<!-- ABSENSI -->
 <div class="card">
+  <h3>👥 Absensi Anggota</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Nama</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="tabelAbsensi"></tbody>
+  </table>
+</div>
+
+<!-- PEMANEN -->
+<div class="card">
+  <h3>🌴 Pemanen</h3>
   <table>
     <thead>
       <tr>
@@ -138,61 +135,78 @@ const db = firebase.firestore();
 
 /* ================= UTIL ================= */
 function tanggalHariIni(){
-  const d = new Date();
+  const d=new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
-/* ================= LOAD DATA ================= */
-async function loadData(){
-  const tanggal = document.getElementById("tanggal").value;
-  const snap = await db.collection("pemanen").get();
-
-  let totalJanjang = 0;
-  let totalKarung = 0;
-
-  const tbody = document.getElementById("tabelPemanen");
-  tbody.innerHTML = "";
+/* ================= LOAD ABSENSI ================= */
+async function loadAbsensi(tanggal){
+  const snap = await db.collection("absensi").get();
+  const tbody = document.getElementById("tabelAbsensi");
+  tbody.innerHTML="";
 
   snap.forEach(doc=>{
-    const d = doc.data();
-    if(d.tanggal === tanggal){
-      let janjang = 0;
-      let karung = 0;
+    const d=doc.data();
+    if(d.tanggal===tanggal){
+      const badge = d.status==="Hadir"
+        ? `<span class="badge badge-hadir">Hadir</span>`
+        : `<span class="badge badge-tidak">Tidak Hadir</span>`;
 
-      if(d.jenis === "Janjang"){
-        janjang = d.jumlah;
-        totalJanjang += d.jumlah;
-      }
+      tbody.innerHTML+=`
+        <tr>
+          <td>${d.nama}</td>
+          <td>${badge}</td>
+        </tr>`;
+    }
+  });
+}
 
-      if(d.jenis === "Brondol"){
-        karung = d.jumlah;
-        totalKarung += d.jumlah;
-      }
+/* ================= LOAD PEMANEN ================= */
+async function loadPemanen(tanggal){
+  const snap = await db.collection("pemanen").get();
+  const tbody = document.getElementById("tabelPemanen");
+  tbody.innerHTML="";
 
-      const badge = d.status === "Selesai"
+  let totalJanjang=0, totalKarung=0;
+
+  snap.forEach(doc=>{
+    const d=doc.data();
+    if(d.tanggal===tanggal){
+      let janjang=0, karung=0;
+
+      if(d.jenis==="Janjang"){janjang=d.jumlah; totalJanjang+=d.jumlah;}
+      if(d.jenis==="Brondol"){karung=d.jumlah; totalKarung+=d.jumlah;}
+
+      const badge = d.status==="Selesai"
         ? `<span class="badge badge-selesai">Selesai</span>`
         : `<span class="badge badge-belum">Belum</span>`;
 
-      tbody.innerHTML += `
+      tbody.innerHTML+=`
         <tr>
           <td>${d.nama}</td>
           <td>${d.blok}</td>
           <td>${janjang}</td>
           <td>${karung}</td>
           <td>${badge}</td>
-        </tr>
-      `;
+        </tr>`;
     }
   });
 
-  document.getElementById("totalJanjang").innerText = totalJanjang;
-  document.getElementById("totalKarung").innerText = totalKarung;
+  totalJanjang.innerText=totalJanjang;
+  totalKarung.innerText=totalKarung;
 }
 
-/* ================= AUTO LOAD ================= */
-document.getElementById("tanggal").value = tanggalHariIni();
-document.getElementById("tanggal").addEventListener("change", loadData);
-loadData();
+/* ================= LOAD ALL ================= */
+function loadAll(){
+  const tanggal=document.getElementById("tanggal").value;
+  loadAbsensi(tanggal);
+  loadPemanen(tanggal);
+}
+
+/* ================= AUTO ================= */
+document.getElementById("tanggal").value=tanggalHariIni();
+document.getElementById("tanggal").addEventListener("change",loadAll);
+loadAll();
 </script>
 
 </body>
