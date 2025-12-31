@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Mandor Sawit</title>
+
+  <!-- Firebase CDN -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    body { font-family:Arial; padding:20px; }
+    input, select, button { margin-bottom:10px; width:100%; padding:8px; }
+    button { background:#1b5e20; color:#fff; border:none; cursor:pointer; }
+  </style>
+</head>
+<body>
+
+<h2>ADMIN INPUT LAPORAN PEMANEN</h2>
+
+<label>Nama</label>
+<input id="nama">
+
+<label>Blok</label>
+<input id="blok">
+
+<label>Jumlah</label>
+<input id="jumlah" type="number">
+
+<label>Jenis</label>
+<select id="jenis">
+  <option>Janjang</option>
+  <option>Brondol</option>
+</select>
+
+<label>Status</label>
+<select id="status">
+  <option>Selesai</option>
+  <option>Belum</option>
+</select>
+
+<button onclick="simpan()">SIMPAN</button>
+
+<script>
+  // 🔥 Firebase Config (PUNYA ANDA)
+  const firebaseConfig = {
+    apiKey: "AIzaSyCazwLdErOX7aYw3qh8VSyOsdV5i13S3nQ",
+    authDomain: "tools-mandor-sawit.firebaseapp.com",
+    projectId: "tools-mandor-sawit",
+    storageBucket: "tools-mandor-sawit.firebasestorage.app",
+    messagingSenderId: "627595048726",
+    appId: "1:627595048726:web:3722898b86cd2474634237"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  function simpan() {
+    db.collection("pemanen").add({
+      tanggal: new Date().toISOString().split("T")[0],
+      nama: nama.value,
+      blok: blok.value,
+      jumlah: Number(jumlah.value),
+      jenis: jenis.value,
+      status: status.value
+    }).then(() => {
+      alert("Data berhasil disimpan");
+      nama.value = blok.value = jumlah.value = "";
+    });
+  }
+</script>
+
+</body>
+</html>
