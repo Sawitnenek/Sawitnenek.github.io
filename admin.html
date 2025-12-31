@@ -288,7 +288,7 @@ function renderPemanenAdmin() {
         <td>${d.keterangan ? d.keterangan : "-"}</td>
         <td>${d.status}</td>
         <td>
-          <button style='background:#ff9800;margin-right:4px;' onclick="editPemanen('${doc.id}', '${d.nama}', '${d.blok}', '${d.jumlah}', '${d.jenis}', '${d.keterangan ? d.keterangan.replace(/'/g, '\\'') : ''}', '${d.status}')">Edit</button>
+          <button style='background:#ff9800;margin-right:4px;' onclick="editPemanen(${JSON.stringify(doc.id)},${JSON.stringify(d.nama)},${JSON.stringify(d.blok)},${JSON.stringify(d.jumlah)},${JSON.stringify(d.jenis)},${JSON.stringify(d.keterangan ? d.keterangan : '')},${JSON.stringify(d.status)})">Edit</button>
           <button style='background:#c62828;' onclick="hapusPemanen('${doc.id}')">Hapus</button>
         </td>
       </tr>`;
@@ -376,7 +376,7 @@ function renderKerjaAdmin() {
           <td>${d.status}</td>
           <td>${d.foto ? `<a href='${d.foto}' target='_blank'>Lihat</a>` : "-"}</td>
           <td>
-            <button style='background:#ff9800;margin-right:4px;' onclick="editKerja('${doc.id}','${jenis}','${d.blok}','${d.anggota}','${d.nama ? d.nama.replace(/'/g, '\\'') : ''}','${d.status}')">Edit</button>
+            <button style='background:#ff9800;margin-right:4px;' onclick="editKerja(${JSON.stringify(doc.id)},${JSON.stringify(jenis)},${JSON.stringify(d.blok)},${JSON.stringify(d.anggota)},${JSON.stringify(d.nama ? d.nama : '')},${JSON.stringify(d.status)})">Edit</button>
             <button style='background:#c62828;' onclick="hapusKerja('${doc.id}','${jenis}')">Hapus</button>
           </td>
         </tr>`;
