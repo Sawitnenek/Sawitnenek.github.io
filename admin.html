@@ -109,7 +109,13 @@ label {
         <option value="Hadir">Hadir</option>
         <option value="Tidak Hadir">Tidak Hadir</option>
       </select>
-      <button onclick="simpanAbsensi()">Simpan Absensi</button>
+      <button onclick="simpanAbsensi()" id="btnSimpanAbsensi">Simpan Absensi</button>
+      <table style="margin-top:16px;width:100%;font-size:0.98rem;">
+        <thead>
+          <tr><th>Nama</th><th>Status</th><th>Aksi</th></tr>
+        </thead>
+        <tbody id="tabelAbsensiAdmin"></tbody>
+      </table>
     </div>
 
     <!-- PEMANEN -->
@@ -201,13 +207,60 @@ function cekAnggota(){
 }
 
 /* ================= ABSENSI ================= */
-function simpanAbsensi(){
-  db.collection("absensi").add({
-    tanggal: tanggalInput.value,
-    nama: absenNama.value,
-    status: absenStatus.value
-  }).then(()=>alert("Absensi tersimpan"));
+function renderAbsensiAdmin() {
+  db.collection("absensi").orderBy("tanggal","desc").limit(20).get().then(snap => {
+    const tbody = document.getElementById("tabelAbsensiAdmin");
+    tbody.innerHTML = "";
+    snap.forEach(doc => {
+      const d = doc.data();
+      tbody.innerHTML += `<tr>
+        <td>${d.nama}</td>
+        <td>${d.status}</td>
+        <td>
+          <button style='background:#ff9800;margin-right:4px;' onclick="editAbsensi('${doc.id}','${d.nama}','${d.status}')">Edit</button>
+          <button style='background:#c62828;' onclick="hapusAbsensi('${doc.id}')">Hapus</button>
+        </td>
+      </tr>`;
+    });
+  });
 }
+function hapusAbsensi(id) {
+  if(confirm('Yakin hapus data ini?')) {
+    db.collection("absensi").doc(id).delete().then(renderAbsensiAdmin);
+  }
+}
+let absensiEditId = null;
+function editAbsensi(id, nama, status) {
+  absensiEditId = id;
+  absenNama.value = nama;
+  absenStatus.value = status;
+  document.getElementById("btnSimpanAbsensi").innerText = "Update Absensi";
+}
+function simpanAbsensi(){
+  if(absensiEditId) {
+    db.collection("absensi").doc(absensiEditId).update({
+      nama: absenNama.value,
+      status: absenStatus.value
+    }).then(()=>{
+      absensiEditId = null;
+      absenNama.value = "";
+      absenStatus.value = "Hadir";
+      document.getElementById("btnSimpanAbsensi").innerText = "Simpan Absensi";
+      renderAbsensiAdmin();
+    });
+  } else {
+    db.collection("absensi").add({
+      tanggal: tanggalInput.value,
+      nama: absenNama.value,
+      status: absenStatus.value
+    }).then(()=>{
+      absenNama.value = "";
+      absenStatus.value = "Hadir";
+      renderAbsensiAdmin();
+    });
+  }
+}
+window.addEventListener('DOMContentLoaded', renderAbsensiAdmin);
 
 /* ================= PEMANEN ================= */
 function simpanPemanen(){
