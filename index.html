@@ -178,7 +178,6 @@ img {
         <th>Nama</th>
         <th>Blok</th>
         <th>Janjang</th>
-        <th>Karung Brondol</th>
         <th>Status</th>
       </tr>
     </thead>
@@ -187,6 +186,27 @@ img {
       <tr>
         <td colspan="2">TOTAL</td>
         <td id="totalJanjang">0</td>
+        <td></td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+<!-- KARUNG BRONDOL -->
+<div class="card">
+  <div class="section-title">🥥 Karung Brondol</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Nama</th>
+        <th>Blok</th>
+        <th>Karung Brondol</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="tabelBrondol"></tbody>
+    <tfoot>
+      <tr>
+        <td colspan="2">TOTAL</td>
         <td id="totalKarung">0</td>
         <td></td>
       </tr>
@@ -249,25 +269,40 @@ async function loadAbsensi(t){
 async function loadPemanen(t){
   const snap=await db.collection("pemanen").get();
   tabelPemanen.innerHTML="";
-  let tj=0,tk=0;
-
+  let tj=0;
   snap.forEach(doc=>{
     const d=doc.data();
-    if(d.tanggal===t){
-      let j=0,k=0;
-      if(d.jenis==="Janjang"){j=d.jumlah;tj+=d.jumlah;}
-      if(d.jenis==="Brondol"){k=d.jumlah;tk+=d.jumlah;}
+    if(d.tanggal===t && d.jenis==="Janjang"){
       tabelPemanen.innerHTML+=`
       <tr>
         <td>${d.nama}</td>
         <td>${d.blok}</td>
-        <td>${j}</td>
-        <td>${k}</td>
+        <td>${d.jumlah}</td>
         <td><span class="badge ${d.status==="Selesai"?"selesai":"belum"}">${d.status}</span></td>
       </tr>`;
+      tj+=d.jumlah;
     }
   });
   totalJanjang.innerText=tj;
+}
+/* ===== KARUNG BRONDOL ===== */
+async function loadBrondol(t){
+  const snap=await db.collection("pemanen").get();
+  tabelBrondol.innerHTML="";
+  let tk=0;
+  snap.forEach(doc=>{
+    const d=doc.data();
+    if(d.tanggal===t && d.jenis==="Brondol"){
+      tabelBrondol.innerHTML+=`
+      <tr>
+        <td>${d.nama}</td>
+        <td>${d.blok}</td>
+        <td>${d.jumlah}</td>
+        <td><span class="badge ${d.status==="Selesai"?"selesai":"belum"}">${d.status}</span></td>
+      </tr>`;
+      tk+=d.jumlah;
+    }
+  });
   totalKarung.innerText=tk;
 }
 
@@ -299,6 +334,7 @@ function loadAll(){
   const t=tanggal.value;
   loadAbsensi(t);
   loadPemanen(t);
+  loadBrondol(t);
   loadKerja(t);
 }
 
