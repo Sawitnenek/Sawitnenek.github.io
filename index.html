@@ -250,6 +250,7 @@ img {
       <tr>
         <th>NAMA</th>
         <th>KARUNG BRONDOL</th>
+        <th>KETERANGAN</th>
       </tr>
     </thead>
     <tbody id="tabelBrondol"></tbody>
@@ -257,6 +258,7 @@ img {
       <tr>
         <td>TOTAL</td>
         <td id="totalKarung">0</td>
+        <td></td>
       </tr>
     </tfoot>
   </table>
@@ -330,7 +332,7 @@ async function loadAbsensi(t){
   showLoading();
   const snap=await db.collection("absensi").get();
   tabelAbsensi.innerHTML="";
-  let total=0;
+  let hadir=0;
   snap.forEach(doc=>{
     const d=doc.data();
     if(d.tanggal===t){
@@ -339,10 +341,10 @@ async function loadAbsensi(t){
         <td>${d.nama}</td>
         <td><span class="badge ${d.status==="Hadir"?"hadir":"tidak"}">${d.status}</span></td>
       </tr>`;
-      total++;
+      if(d.status==="Hadir") hadir++;
     }
   });
-  document.getElementById("absensiTotal").innerText = `Total Anggota: ${total}`;
+  document.getElementById("absensiTotal").innerText = `Total Hadir: ${hadir}`;
   hideLoading();
 }
 
@@ -381,6 +383,7 @@ async function loadBrondol(t){
       <tr>
         <td>${d.nama}</td>
         <td>${d.jumlah}</td>
+        <td>${d.keterangan ? d.keterangan : "-"}</td>
       </tr>`;
       tk+=d.jumlah;
     }

@@ -122,6 +122,7 @@ label {
         <option value="Janjang">Janjang</option>
         <option value="Brondol">Brondol</option>
       </select>
+      <input id="keteranganPemanen" placeholder="Keterangan (opsional)">
       <select id="statusPemanen">
         <option value="Selesai">Selesai</option>
         <option value="Belum">Belum</option>
@@ -216,6 +217,7 @@ function simpanPemanen(){
     blok: blokPemanen.value,
     jumlah: Number(jumlahPemanen.value),
     jenis: jenisPemanen.value,
+    keterangan: keteranganPemanen.value,
     status: statusPemanen.value
   }).then(()=>alert("Pemanen tersimpan"));
 }
