@@ -27,8 +27,8 @@ h2{text-align:center;margin-bottom:5px}
 .filter{
   display:flex;
   justify-content:center;
-  align-items:center;
-  gap:10px
+  gap:10px;
+  align-items:center
 }
 input[type="date"]{
   padding:8px 12px;
@@ -43,7 +43,8 @@ table{
 th,td{
   padding:10px;
   border-bottom:1px solid #e0e0e0;
-  text-align:center
+  text-align:center;
+  font-size:14px
 }
 th{
   background:#1b5e20;
@@ -57,17 +58,21 @@ tfoot td{
 .badge{
   padding:4px 10px;
   border-radius:12px;
-  font-size:13px;
+  font-size:12px;
   font-weight:bold
 }
-.badge-selesai{background:#c8e6c9;color:#1b5e20}
-.badge-belum{background:#ffcdd2;color:#b71c1c}
-.badge-hadir{background:#bbdefb;color:#0d47a1}
-.badge-tidak{background:#eeeeee;color:#424242}
+.selesai{background:#c8e6c9;color:#1b5e20}
+.belum{background:#ffcdd2;color:#b71c1c}
+.hadir{background:#bbdefb;color:#0d47a1}
+.tidak{background:#eeeeee;color:#424242}
 img{
-  max-width:120px;
+  width:70px;
   border-radius:6px;
-  margin:4px
+  cursor:pointer
+}
+.section-title{
+  font-weight:bold;
+  margin-bottom:6px
 }
 </style>
 </head>
@@ -75,19 +80,19 @@ img{
 <body>
 
 <h2>📊 Dashboard Laporan Sawit</h2>
-<div class="subtitle">Laporan Harian Kebun</div>
+<div class="subtitle">Rekap Harian Kebun</div>
 
 <!-- FILTER -->
 <div class="card">
   <div class="filter">
-    <b>Pilih Tanggal:</b>
+    <b>Tanggal:</b>
     <input type="date" id="tanggal">
   </div>
 </div>
 
 <!-- ABSENSI -->
 <div class="card">
-  <h3>👥 Absensi Anggota</h3>
+  <div class="section-title">👥 Absensi Anggota</div>
   <table>
     <thead>
       <tr><th>Nama</th><th>Status</th></tr>
@@ -98,7 +103,7 @@ img{
 
 <!-- PEMANEN -->
 <div class="card">
-  <h3>🌴 Pemanen</h3>
+  <div class="section-title">🌴 Pemanen</div>
   <table>
     <thead>
       <tr>
@@ -121,35 +126,20 @@ img{
   </table>
 </div>
 
-<!-- SEMPROT -->
+<!-- SEMPROT & TEBAS -->
 <div class="card">
-  <h3>🧪 Semprot</h3>
+  <div class="section-title">🧪 Semprot & 🌿 Tebas</div>
   <table>
     <thead>
       <tr>
+        <th>Jenis</th>
         <th>Blok</th>
-        <th>Before</th>
-        <th>After</th>
+        <th>Anggota</th>
         <th>Status</th>
+        <th>Foto</th>
       </tr>
     </thead>
-    <tbody id="tabelSemprot"></tbody>
-  </table>
-</div>
-
-<!-- TEBAS -->
-<div class="card">
-  <h3>🌿 Tebas</h3>
-  <table>
-    <thead>
-      <tr>
-        <th>Blok</th>
-        <th>Before</th>
-        <th>After</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody id="tabelTebas"></tbody>
+    <tbody id="tabelKerja"></tbody>
   </table>
 </div>
 
@@ -179,10 +169,11 @@ async function loadAbsensi(t){
   snap.forEach(doc=>{
     const d=doc.data();
     if(d.tanggal===t){
-      const b=d.status==="Hadir"
-        ?`<span class="badge badge-hadir">Hadir</span>`
-        :`<span class="badge badge-tidak">Tidak</span>`;
-      tabelAbsensi.innerHTML+=`<tr><td>${d.nama}</td><td>${b}</td></tr>`;
+      tabelAbsensi.innerHTML+=`
+      <tr>
+        <td>${d.nama}</td>
+        <td><span class="badge ${d.status==="Hadir"?"hadir":"tidak"}">${d.status}</span></td>
+      </tr>`;
     }
   });
 }
@@ -199,40 +190,47 @@ async function loadPemanen(t){
       let j=0,k=0;
       if(d.jenis==="Janjang"){j=d.jumlah;tj+=d.jumlah;}
       if(d.jenis==="Brondol"){k=d.jumlah;tk+=d.jumlah;}
-      const b=d.status==="Selesai"
-        ?`<span class="badge badge-selesai">Selesai</span>`
-        :`<span class="badge badge-belum">Belum</span>`;
       tabelPemanen.innerHTML+=`
-        <tr>
-          <td>${d.nama}</td>
-          <td>${d.blok}</td>
-          <td>${j}</td>
-          <td>${k}</td>
-          <td>${b}</td>
-        </tr>`;
+      <tr>
+        <td>${d.nama}</td>
+        <td>${d.blok}</td>
+        <td>${j}</td>
+        <td>${k}</td>
+        <td><span class="badge ${d.status==="Selesai"?"selesai":"belum"}">${d.status}</span></td>
+      </tr>`;
     }
   });
   totalJanjang.innerText=tj;
   totalKarung.innerText=tk;
 }
 
-/* ===== SEMPROT / TEBAS ===== */
-async function loadKerja(col,tbodyId,t){
-  const snap=await db.collection(col).get();
-  const tb=document.getElementById(tbodyId);
-  tb.innerHTML="";
-  snap.forEach(doc=>{
-    const d=doc.data();
-    if(d.tanggal===t){
-      tb.innerHTML+=`
-      <tr>
-        <td>${d.blok}</td>
-        <td><img src="${d.before}"></td>
-        <td><img src="${d.after}"></td>
-        <td><span class="badge badge-selesai">Selesai</span></td>
-      </tr>`;
-    }
-  });
+/* ===== SEMPROT & TEBAS ===== */
+async function loadKerja(t){
+  tabelKerja.innerHTML="";
+  for(const jenis of ["semprot","tebas"]){
+    const snap=await db.collection(jenis).get();
+    snap.forEach(doc=>{
+      const d=doc.data();
+      if(d.tanggal===t){
+        const anggota = d.anggota===1 && d.nama
+          ? `1 Orang (${d.nama})`
+          : `${d.anggota} Orang`;
+
+        const foto = d.foto
+          ? `<a href="${d.foto}" target="_blank"><img src="${d.foto}"></a>`
+          : "-";
+
+        tabelKerja.innerHTML+=`
+        <tr>
+          <td>${jenis==="semprot"?"🧪 Semprot":"🌿 Tebas"}</td>
+          <td>${d.blok}</td>
+          <td>${anggota}</td>
+          <td><span class="badge ${d.status==="Selesai"?"selesai":"belum"}">${d.status}</span></td>
+          <td>${foto}</td>
+        </tr>`;
+      }
+    });
+  }
 }
 
 /* ===== LOAD ALL ===== */
@@ -240,8 +238,7 @@ function loadAll(){
   const t=tanggal.value;
   loadAbsensi(t);
   loadPemanen(t);
-  loadKerja("semprot","tabelSemprot",t);
-  loadKerja("tebas","tabelTebas",t);
+  loadKerja(t);
 }
 
 /* ===== INIT ===== */
