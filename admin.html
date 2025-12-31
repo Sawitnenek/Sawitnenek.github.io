@@ -38,6 +38,10 @@ button{
   cursor:pointer
 }
 button:hover{opacity:.9}
+label{
+  font-size:14px;
+  color:#555
+}
 </style>
 </head>
 
@@ -108,11 +112,8 @@ button:hover{opacity:.9}
       <option value="Belum">Belum</option>
     </select>
 
-    <label>Foto Before</label>
-    <input type="file" id="fotoBefore">
-
-    <label>Foto After</label>
-    <input type="file" id="fotoAfter">
+    <label>📷 Upload Foto Kegiatan</label>
+    <input type="file" id="fotoKerja" accept="image/*">
 
     <button onclick="simpanKerja()">Simpan Semprot / Tebas</button>
   </div>
@@ -182,26 +183,28 @@ function simpanPemanen(){
 }
 
 /* ================= UPLOAD FOTO ================= */
-async function upload(file,path){
+async function uploadFoto(file,path){
   if(!file) return "";
-  const ref=storage.ref(path);
+  const ref = storage.ref(path);
   await ref.put(file);
   return await ref.getDownloadURL();
 }
 
 /* ================= SEMPROT / TEBAS ================= */
 async function simpanKerja(){
-  const jenis=jenisKerja.value;
-  const before=await upload(fotoBefore.files[0],`kerja/${jenis}/${Date.now()}_before`);
-  const after=await upload(fotoAfter.files[0],`kerja/${jenis}/${Date.now()}_after`);
+  const jenis = jenisKerja.value;
+  const fotoFile = fotoKerja.files[0];
+  const fotoURL = await uploadFoto(
+    fotoFile,
+    `kerja/${jenis}/${Date.now()}`
+  );
 
   db.collection(jenis).add({
     tanggal: tanggalInput.value,
     blok: blokKerja.value,
     anggota: Number(anggotaKerja.value),
     status: statusKerja.value,
-    before: before,
-    after: after
+    foto: fotoURL
   }).then(()=>alert("Semprot / Tebas tersimpan"));
 }
 </script>
