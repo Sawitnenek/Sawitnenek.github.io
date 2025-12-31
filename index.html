@@ -38,6 +38,8 @@ tfoot td{
   font-weight:bold;
   background:#e8f5e9
 }
+.status-selesai{color:green;font-weight:bold}
+.status-belum{color:red;font-weight:bold}
 </style>
 </head>
 
@@ -55,8 +57,10 @@ tfoot td{
   <table>
     <thead>
       <tr>
+        <th>Tanggal</th>
         <th>Nama</th>
         <th>Blok</th>
+        <th>Status</th>
         <th>Janjang</th>
         <th>Karung Brondol</th>
       </tr>
@@ -64,7 +68,7 @@ tfoot td{
     <tbody id="tabelPemanen"></tbody>
     <tfoot>
       <tr>
-        <td colspan="2">TOTAL</td>
+        <td colspan="4">TOTAL</td>
         <td id="totalJanjang">0</td>
         <td id="totalKarung">0</td>
       </tr>
@@ -107,6 +111,7 @@ async function loadRekap(){
     const d = doc.data();
     if(!d.tanggal) return;
 
+    // FILTER BULAN
     if(d.tanggal.startsWith(bulan)){
       let janjang = 0;
       let karung = 0;
@@ -121,10 +126,14 @@ async function loadRekap(){
         totalKarung += d.jumlah;
       }
 
+      const statusClass = d.status === "Selesai" ? "status-selesai" : "status-belum";
+
       tbody.innerHTML += `
         <tr>
+          <td>${d.tanggal}</td>
           <td>${d.nama}</td>
           <td>${d.blok}</td>
+          <td class="${statusClass}">${d.status}</td>
           <td>${janjang}</td>
           <td>${karung}</td>
         </tr>
