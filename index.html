@@ -69,6 +69,7 @@ th {
   background: linear-gradient(90deg, #388e3c 0%, #1b5e20 100%);
   color: #fff;
   font-size: 1rem;
+  text-transform: uppercase;
 }
 tr:hover {
   background: #f9fbe7;
@@ -96,8 +97,8 @@ tfoot td {
   color: #0d47a1;
 }
 .tidak {
-  background: #eeeeee;
-  color: #424242;
+  background: #ffcdd2;
+  color: #b71c1c;
 }
 img {
   width: 70px;
@@ -109,6 +110,55 @@ img {
   font-weight: bold;
   margin-bottom: 8px;
   font-size: 1.1rem;
+  text-transform: uppercase;
+}
+#scrollTopBtn {
+  display: none;
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 99;
+  background: #1b5e20;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  font-size: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+#scrollTopBtn:hover {
+  background: #388e3c;
+}
+#loadingSpinner {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255,255,255,0.7);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+#loadingSpinner .spinner {
+  border: 6px solid #e0e0e0;
+  border-top: 6px solid #1b5e20;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.absensi-total {
+  text-align: right;
+  font-size: 0.98rem;
+  color: #333;
+  margin-top: 4px;
+  font-weight: 500;
 }
 @media (max-width: 700px) {
   .container {
@@ -160,25 +210,26 @@ img {
 
 <!-- ABSENSI -->
 <div class="card">
-  <div class="section-title">👥 Absensi Anggota</div>
+  <div class="section-title">ABSENSI ANGGOTA</div>
   <table>
     <thead>
-      <tr><th>Nama</th><th>Status</th></tr>
+      <tr><th>NAMA</th><th>STATUS</th></tr>
     </thead>
     <tbody id="tabelAbsensi"></tbody>
   </table>
+  <div class="absensi-total" id="absensiTotal"></div>
 </div>
 
 <!-- PEMANEN -->
 <div class="card">
-  <div class="section-title">🌴 Pemanen</div>
+  <div class="section-title">PEMANEN</div>
   <table>
     <thead>
       <tr>
-        <th>Nama</th>
-        <th>Blok</th>
-        <th>Janjang</th>
-        <th>Status</th>
+        <th>NAMA</th>
+        <th>BLOK</th>
+        <th>JANJANG</th>
+        <th>STATUS</th>
       </tr>
     </thead>
     <tbody id="tabelPemanen"></tbody>
@@ -193,22 +244,19 @@ img {
 </div>
 <!-- KARUNG BRONDOL -->
 <div class="card">
-  <div class="section-title">🥥 Karung Brondol</div>
+  <div class="section-title">KARUNG BRONDOL</div>
   <table>
     <thead>
       <tr>
-        <th>Nama</th>
-        <th>Blok</th>
-        <th>Karung Brondol</th>
-        <th>Status</th>
+        <th>NAMA</th>
+        <th>KARUNG BRONDOL</th>
       </tr>
     </thead>
     <tbody id="tabelBrondol"></tbody>
     <tfoot>
       <tr>
-        <td colspan="2">TOTAL</td>
+        <td>TOTAL</td>
         <td id="totalKarung">0</td>
-        <td></td>
       </tr>
     </tfoot>
   </table>
@@ -216,19 +264,22 @@ img {
 
 <!-- SEMPROT & TEBAS -->
 <div class="card">
-  <div class="section-title">🌿 Semprot & Tebas</div>
+  <div class="section-title">SEMPROT & TEBAS</div>
   <table>
     <thead>
       <tr>
-        <th>Jenis</th>
-        <th>Blok</th>
-        <th>Anggota</th>
-        <th>Status</th>
+        <th>JENIS</th>
+        <th>BLOK</th>
+        <th>ANGGOTA</th>
+        <th>STATUS</th>
       </tr>
     </thead>
     <tbody id="tabelKerja"></tbody>
   </table>
 </div>
+
+<div id="loadingSpinner"><div class="spinner"></div></div>
+<button id="scrollTopBtn" title="Kembali ke Atas">↑</button>
 
 <script>
 /* ===== FIREBASE ===== */
@@ -249,10 +300,33 @@ function today(){
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
+// SCROLL TO TOP BUTTON
+const scrollTopBtn = document.getElementById("scrollTopBtn");
+window.onscroll = function() {
+  if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
+    scrollTopBtn.style.display = "block";
+  } else {
+    scrollTopBtn.style.display = "none";
+  }
+};
+scrollTopBtn.onclick = function() {
+  window.scrollTo({top: 0, behavior: 'smooth'});
+};
+
+// LOADING SPINNER
+function showLoading() {
+  document.getElementById("loadingSpinner").style.display = "flex";
+}
+function hideLoading() {
+  document.getElementById("loadingSpinner").style.display = "none";
+}
+
 /* ===== ABSENSI ===== */
 async function loadAbsensi(t){
+  showLoading();
   const snap=await db.collection("absensi").get();
   tabelAbsensi.innerHTML="";
+  let total=0;
   snap.forEach(doc=>{
     const d=doc.data();
     if(d.tanggal===t){
@@ -261,12 +335,16 @@ async function loadAbsensi(t){
         <td>${d.nama}</td>
         <td><span class="badge ${d.status==="Hadir"?"hadir":"tidak"}">${d.status}</span></td>
       </tr>`;
+      total++;
     }
   });
+  document.getElementById("absensiTotal").innerText = `Total Anggota: ${total}`;
+  hideLoading();
 }
 
 /* ===== PEMANEN ===== */
 async function loadPemanen(t){
+  showLoading();
   const snap=await db.collection("pemanen").get();
   tabelPemanen.innerHTML="";
   let tj=0;
@@ -284,9 +362,11 @@ async function loadPemanen(t){
     }
   });
   totalJanjang.innerText=tj;
+  hideLoading();
 }
 /* ===== KARUNG BRONDOL ===== */
 async function loadBrondol(t){
+  showLoading();
   const snap=await db.collection("pemanen").get();
   tabelBrondol.innerHTML="";
   let tk=0;
@@ -296,18 +376,17 @@ async function loadBrondol(t){
       tabelBrondol.innerHTML+=`
       <tr>
         <td>${d.nama}</td>
-        <td>${d.blok}</td>
         <td>${d.jumlah}</td>
-        <td><span class="badge ${d.status==="Selesai"?"selesai":"belum"}">${d.status}</span></td>
       </tr>`;
       tk+=d.jumlah;
     }
   });
   totalKarung.innerText=tk;
+  hideLoading();
 }
-
 /* ===== SEMPROT & TEBAS ===== */
 async function loadKerja(t){
+  showLoading();
   tabelKerja.innerHTML="";
   for(const jenis of ["semprot","tebas"]){
     const snap=await db.collection(jenis).get();
@@ -327,6 +406,7 @@ async function loadKerja(t){
       }
     });
   }
+  hideLoading();
 }
 
 /* ===== LOAD ALL ===== */
