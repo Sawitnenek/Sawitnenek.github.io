@@ -9,37 +9,132 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <style>
-body{font-family:"Segoe UI",Arial,sans-serif;background:#f1f5f9;margin:0;color:#333}
-h2{text-align:center;margin-top:24px;font-size:2rem}
-.subtitle{text-align:center;color:#666;margin-bottom:20px}
-.container{max-width:900px;margin:0 auto;padding:16px}
-.card{background:#fff;padding:20px 16px;border-radius:12px;margin-bottom:24px;box-shadow:0 2px 12px rgba(0,0,0,.07)}
-.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-.summary .box{background:#e8f5e9;border-radius:12px;padding:16px;text-align:center}
-.summary .box h4{margin:0;font-size:1rem;color:#1b5e20}
-.summary .box b{font-size:1.6rem}
-.filter{display:flex;justify-content:center;gap:10px;align-items:center;flex-wrap:wrap}
-input[type=date]{padding:10px 14px;border-radius:8px;border:1px solid #d1d5db;font-size:1rem}
-table{width:100%;border-collapse:collapse;margin-top:10px;background:#fff;border-radius:10px;overflow:hidden}
-th,td{padding:12px 8px;border-bottom:1px solid #e0e0e0;text-align:center;font-size:15px}
-th{background:linear-gradient(90deg,#388e3c 0%,#1b5e20 100%);color:#fff;text-transform:uppercase}
-tr:hover{background:#f9fbe7}
-tfoot td{font-weight:bold;background:#e8f5e9}
-.badge{padding:4px 10px;border-radius:12px;font-size:13px;font-weight:bold}
-.selesai{background:#c8e6c9;color:#1b5e20}
-.belum{background:#ffcdd2;color:#b71c1c}
-.hadir{background:#bbdefb;color:#0d47a1}
-.tidak{background:#ffcdd2;color:#b71c1c}
-.section-title{font-weight:bold;margin-bottom:8px;font-size:1.1rem;text-transform:uppercase}
-#scrollTopBtn{display:none;position:fixed;bottom:24px;right:24px;z-index:99;background:#1b5e20;color:#fff;border:none;border-radius:50%;width:48px;height:48px;font-size:1.5rem;box-shadow:0 2px 8px rgba(0,0,0,.15);cursor:pointer}
-#loadingSpinner{display:none;position:fixed;inset:0;background:rgba(255,255,255,.7);z-index:1000;align-items:center;justify-content:center}
-#loadingSpinner .spinner{border:6px solid #e0e0e0;border-top:6px solid #1b5e20;border-radius:50%;width:48px;height:48px;animation:spin 1s linear infinite}
-@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+/* ===== GLOBAL ===== */
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: #f3f6f9;
+  margin: 0;
+  color: #333;
+}
+h2 {
+  text-align: center;
+  margin: 18px 0 4px;
+  font-size: 1.6rem;
+}
+.subtitle {
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.95rem;
+  margin-bottom: 14px;
+}
+.container {
+  max-width: 960px;
+  margin: auto;
+  padding: 12px;
+}
+
+/* ===== CARD ===== */
+.card {
+  background: #fff;
+  padding: 14px;
+  border-radius: 14px;
+  margin-bottom: 16px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.06);
+}
+
+/* ===== RINGKASAN ===== */
+.summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.summary .box {
+  background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
+  border-radius: 14px;
+  padding: 14px 8px;
+  text-align: center;
+}
+.summary .box h4 {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1b5e20;
+}
+.summary .box b {
+  display: block;
+  margin-top: 4px;
+  font-size: 1.4rem;
+  color: #0f3d1e;
+}
+
+/* ===== FILTER ===== */
+.filter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+input[type="date"] {
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+}
+
+/* ===== TABLE ===== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+}
+th {
+  background: linear-gradient(90deg, #2e7d32, #1b5e20);
+  color: #fff;
+  padding: 12px 6px;
+  font-size: 0.85rem;
+}
+td {
+  padding: 10px 6px;
+  font-size: 0.9rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+tfoot td {
+  font-weight: bold;
+  background: #e8f5e9;
+}
+
+/* ===== BADGE ===== */
+.badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.selesai { background: #c8e6c9; color: #1b5e20; }
+.belum   { background: #ffcdd2; color: #b71c1c; }
+.hadir   { background: #bbdefb; color: #0d47a1; }
+.tidak   { background: #ffcdd2; color: #b71c1c; }
+
+/* ===== MOBILE ===== */
+@media (max-width: 768px) {
+  h2 { font-size: 1.2rem; }
+  .summary { grid-template-columns: repeat(2, 1fr); }
+  table { display: block; overflow-x: auto; white-space: nowrap; }
+}
+@media (max-width: 420px) {
+  .summary { grid-template-columns: 1fr; }
+}
 </style>
 </head>
+
 <body>
+
 <h2>📊 Dashboard Laporan Sawit</h2>
 <div class="subtitle">Rekap Harian Kebun</div>
+
 <div class="container">
 
 <!-- RINGKASAN BUAH KELUAR -->
@@ -50,33 +145,91 @@ tfoot td{font-weight:bold;background:#e8f5e9}
     <div class="box"><h4>📈 Bulan Ini</h4><b id="sumBulan">0</b></div>
     <div class="box"><h4>📉 Bulan Lalu</h4><b id="sumLalu">0</b></div>
   </div>
+  <div style="text-align:center;font-size:.75rem;color:#6b7280;margin-top:6px">
+    Ringkasan berdasarkan waktu berjalan (real-time)
+  </div>
 </div>
 
 <!-- FILTER -->
-<div class="card"><div class="filter"><b>Tanggal:</b><input type="date" id="tanggal"></div></div>
+<div class="card">
+  <div class="filter">
+    <b>Tanggal:</b>
+    <input type="date" id="tanggal">
+  </div>
+</div>
 
 <!-- ABSENSI -->
-<div class="card"><div class="section-title">ABSENSI ANGGOTA</div><table><thead><tr><th>NAMA</th><th>STATUS</th></tr></thead><tbody id="tabelAbsensi"></tbody></table><div id="absensiTotal"></div></div>
+<div class="card">
+  <div class="section-title">ABSENSI ANGGOTA</div>
+  <table>
+    <thead><tr><th>NAMA</th><th>STATUS</th></tr></thead>
+    <tbody id="tabelAbsensi"></tbody>
+  </table>
+  <div id="absensiTotal"></div>
+</div>
 
 <!-- PEMANEN -->
-<div class="card"><div class="section-title">PEMANEN</div><table><thead><tr><th>NAMA</th><th>BLOK</th><th>JANJANG</th><th>STATUS</th></tr></thead><tbody id="tabelPemanen"></tbody><tfoot><tr><td colspan="2">TOTAL</td><td id="totalJanjang">0</td><td></td></tr></tfoot></table></div>
+<div class="card">
+  <div class="section-title">PEMANEN</div>
+  <table>
+    <thead><tr><th>NAMA</th><th>BLOK</th><th>JANJANG</th><th>STATUS</th></tr></thead>
+    <tbody id="tabelPemanen"></tbody>
+    <tfoot><tr><td colspan="2">TOTAL</td><td id="totalJanjang">0</td><td></td></tr></tfoot>
+  </table>
+</div>
 
 <!-- BRONDOL -->
-<div class="card"><div class="section-title">KARUNG BRONDOL</div><table><thead><tr><th>NAMA</th><th>KARUNG</th><th>KETERANGAN</th></tr></thead><tbody id="tabelBrondol"></tbody><tfoot><tr><td>TOTAL</td><td id="totalKarung">0</td><td></td></tr></tfoot></table></div>
-
-<!-- SEMPROT & TEBAS -->
-<div class="card"><div class="section-title">SEMPROT & TEBAS</div><table><thead><tr><th>JENIS</th><th>BLOK</th><th>ANGGOTA</th><th>STATUS</th></tr></thead><tbody id="tabelKerja"></tbody></table></div>
+<div class="card">
+  <div class="section-title">KARUNG BRONDOL</div>
+  <table>
+    <thead><tr><th>NAMA</th><th>KARUNG</th><th>KETERANGAN</th></tr></thead>
+    <tbody id="tabelBrondol"></tbody>
+    <tfoot><tr><td>TOTAL</td><td id="totalKarung">0</td><td></td></tr></tfoot>
+  </table>
 </div>
-<div id="loadingSpinner"><div class="spinner"></div></div>
-<button id="scrollTopBtn">↑</button>
+
+</div>
+
 <script>
-const firebaseConfig={apiKey:"AIzaSyCazwLdErOX7aYw3qh8VSyOsdV5i13S3nQ",authDomain:"tools-mandor-sawit.firebaseapp.com",projectId:"tools-mandor-sawit"};
-firebase.initializeApp(firebaseConfig);const db=firebase.firestore();
-function today(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
-async function loadRingkasan(){const snap=await db.collection('pemanen').get();const now=new Date();let h=0,s7=0,b=0,l=0;snap.forEach(doc=>{const d=doc.data();if(d.jenis!=='Janjang')return;const t=new Date(d.tanggal);const diff=(now-t)/86400000;const j=Number(d.jumlah||0);if(diff>=0&&diff<1)h+=j;if(diff>=0&&diff<7)s7+=j;if(t.getMonth()===now.getMonth()&&t.getFullYear()===now.getFullYear())b+=j;const lm=new Date(now.getFullYear(),now.getMonth()-1,1);if(t.getMonth()===lm.getMonth()&&t.getFullYear()===lm.getFullYear())l+=j});sumHari.innerText=h+' Tandan';sum7.innerText=s7+' Tandan';sumBulan.innerText=b+' Tandan';sumLalu.innerText=l+' Tandan'}
-// fungsi lama tetap
-loadRingkasan();
+/* FIREBASE */
+firebase.initializeApp({
+  apiKey: "AIzaSyCazwLdErOX7aYw3qh8VSyOsdV5i13S3nQ",
+  authDomain: "tools-mandor-sawit.firebaseapp.com",
+  projectId: "tools-mandor-sawit"
+});
+const db = firebase.firestore();
+
+function today(){
+  const d=new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+/* RINGKASAN */
+async function loadRingkasan(){
+  const snap=await db.collection("pemanen").get();
+  const now=new Date();
+  let h=0,s7=0,b=0,l=0;
+  snap.forEach(doc=>{
+    const d=doc.data();
+    if(d.jenis!=="Janjang")return;
+    const t=new Date(d.tanggal);
+    const diff=(now-t)/86400000;
+    const j=Number(d.jumlah||0);
+    if(diff>=0&&diff<1)h+=j;
+    if(diff>=0&&diff<7)s7+=j;
+    if(t.getMonth()===now.getMonth())b+=j;
+    const lm=new Date(now.getFullYear(),now.getMonth()-1,1);
+    if(t.getMonth()===lm.getMonth())l+=j;
+  });
+  sumHari.innerText=h+" Tandan";
+  sum7.innerText=s7+" Tandan";
+  sumBulan.innerText=b+" Tandan";
+  sumLalu.innerText=l+" Tandan";
+}
+
 tanggal.value=today();
+loadRingkasan();
 </script>
+
 </body>
 </html>
