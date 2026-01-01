@@ -368,6 +368,10 @@ window.login = function login(){
       loginBox.style.display="none";
       panelBox.style.display="block";
       tanggalInput.value=today();
+      // Render data untuk tanggal hari ini
+      renderAbsensiAdmin();
+      renderPemanenAdmin();
+      renderKerjaAdmin();
     })
     .catch(e=>alert(e.message));
 }
@@ -383,9 +387,15 @@ function cekAnggota(){
 
 /* ================= ABSENSI ================= */
 function renderAbsensiAdmin() {
-  db.collection("absensi").orderBy("tanggal","desc").limit(20).get().then(snap => {
+  const tgl = tanggalInput.value;
+  if(!tgl) return;
+  db.collection("absensi").where("tanggal","==",tgl).get().then(snap => {
     const tbody = document.getElementById("tabelAbsensiAdmin");
     tbody.innerHTML = "";
+    if(snap.empty) {
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#94a3b8;padding:20px">Belum ada data untuk tanggal ini</td></tr>';
+      return;
+    }
     snap.forEach(doc => {
       const d = doc.data();
       tbody.innerHTML += `<tr>
@@ -435,13 +445,18 @@ function simpanAbsensi(){
     });
   }
 }
-window.addEventListener('DOMContentLoaded', renderAbsensiAdmin);
 
 /* ================= PEMANEN ================= */
 function renderPemanenAdmin() {
-  db.collection("pemanen").orderBy("tanggal","desc").limit(30).get().then(snap => {
+  const tgl = tanggalInput.value;
+  if(!tgl) return;
+  db.collection("pemanen").where("tanggal","==",tgl).get().then(snap => {
     const tbody = document.getElementById("tabelPemanenAdmin");
     tbody.innerHTML = "";
+    if(snap.empty) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:20px">Belum ada data untuk tanggal ini</td></tr>';
+      return;
+    }
     snap.forEach(doc => {
       const d = doc.data();
       tbody.innerHTML += `<tr>
@@ -526,8 +541,53 @@ async function uploadFoto(file,path){
 
 /* ================= SEMPROT / TEBAS ================= */
 function renderKerjaAdmin() {
+  const tgl = tanggalInput.value;
+  if(!tgl) return;
   const tbody = document.getElementById("tabelKerjaAdmin");
   tbody.innerHTML = "";
+  
+  Promise.all([
+    db.collection("semprot").where("tanggal","==",tgl).get(),
+    db.collection("tebas").where("tanggal","==",tgl).get()
+  ]).then(([snapSemprot, snapTebas]) => {
+    if(snapSemprot.empty && snapTebas.empty) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:20px">Belum ada data untuk tanggal ini</td></tr>';
+      return;
+    }
+    
+    snapSemprot.forEach(doc => {
+      const d = doc.data();
+      tbody.innerHTML += `<tr>
+        <td>Semprot</td>
+        <td>${d.blok}</td>
+        <td>${d.anggota}</td>
+        <td>${d.nama || "-"}</td>
+        <td>${d.status}</td>
+        <td>${d.foto ? '<a href="' + d.foto + '" target="_blank">Lihat</a>' : "-"}</td>
+        <td>
+          <button style='background:#ff9800;margin-right:4px;' onclick="editKerja('${doc.id}','semprot','${d.blok}',${d.anggota},'${d.nama || ''}','${d.status}')">Edit</button>
+          <button style='background:#c62828;' onclick="hapusKerja('${doc.id}','semprot')">Hapus</button>
+        </td>
+      </tr>`;
+    });
+    
+    snapTebas.forEach(doc => {
+      const d = doc.data();
+      tbody.innerHTML += `<tr>
+        <td>Tebas</td>
+        <td>${d.blok}</td>
+        <td>${d.anggota}</td>
+        <td>${d.nama || "-"}</td>
+        <td>${d.status}</td>
+        <td>${d.foto ? '<a href="' + d.foto + '" target="_blank">Lihat</a>' : "-"}</td>
+        <td>
+          <button style='background:#ff9800;margin-right:4px;' onclick="editKerja('${doc.id}','tebas','${d.blok}',${d.anggota},'${d.nama || ''}','${d.status}')">Edit</button>
+          <button style='background:#c62828;' onclick="hapusKerja('${doc.id}','tebas')">Hapus</button>
+        </td>
+      </tr>`;
+    });
+  });
+}
   ["semprot","tebas"].forEach(jenis => {
     db.collection(jenis).orderBy("tanggal","desc").limit(20).get().then(snap => {
       snap.forEach(doc => {
@@ -613,9 +673,15 @@ async function simpanKerja(){
 }
 
 window.addEventListener('DOMContentLoaded', function() {
-  renderAbsensiAdmin();
-  renderPemanenAdmin();
-  renderKerjaAdmin();
+  // Event listener untuk perubahan tanggal
+  const tanggalInputElement = document.getElementById('tanggalInput');
+  if(tanggalInputElement) {
+    tanggalInputElement.addEventListener('change', function() {
+      renderAbsensiAdmin();
+      renderPemanenAdmin();
+      renderKerjaAdmin();
+    });
+  }
 });
 </script>
 
