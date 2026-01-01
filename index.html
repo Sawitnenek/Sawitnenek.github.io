@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>Dashboard Laporan Sawit</title>
 
-<!-- Tailwind CDN -->
+<!-- Tailwind -->
 <script src="https://cdn.tailwindcss.com"></script>
 
 <!-- Firebase -->
@@ -19,7 +19,6 @@
 
 <body class="bg-slate-100 text-slate-800">
 
-<!-- HEADER -->
 <header class="text-center py-6">
   <h1 class="text-2xl font-bold">📊 Dashboard Laporan Sawit</h1>
   <p class="text-slate-500 text-sm">Rekap & Monitoring Panen</p>
@@ -28,7 +27,7 @@
 <div class="max-w-6xl mx-auto px-4 pb-10" id="areaExport">
 
 <!-- FILTER -->
-<div class="bg-white rounded-2xl shadow p-4 mb-6 flex justify-center items-center gap-3">
+<div class="bg-white rounded-2xl shadow p-4 mb-6 flex justify-center gap-3">
   <span class="font-semibold">Tanggal</span>
   <input type="date" id="tanggal"
     class="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500">
@@ -38,39 +37,37 @@
 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
   <div class="bg-green-50 rounded-2xl p-4 text-center">
     <p class="text-sm text-green-700">🌴 Hari Ini</p>
-    <b id="sumHari" class="text-2xl block mt-1">0</b>
+    <b id="sumHari" class="text-2xl">0</b>
   </div>
   <div class="bg-blue-50 rounded-2xl p-4 text-center">
     <p class="text-sm text-blue-700">📊 7 Hari</p>
-    <b id="sum7" class="text-2xl block mt-1">0</b>
+    <b id="sum7" class="text-2xl">0</b>
   </div>
   <div class="bg-emerald-50 rounded-2xl p-4 text-center">
     <p class="text-sm text-emerald-700">📈 Bulan Ini</p>
-    <b id="sumBulan" class="text-2xl block mt-1">0</b>
+    <b id="sumBulan" class="text-2xl">0</b>
   </div>
   <div class="bg-rose-50 rounded-2xl p-4 text-center">
     <p class="text-sm text-rose-700">📉 Bulan Lalu</p>
-    <b id="sumLalu" class="text-2xl block mt-1">0</b>
+    <b id="sumLalu" class="text-2xl">0</b>
   </div>
 </div>
 
-<!-- TABLE CARD -->
-<div class="bg-white rounded-2xl shadow mb-6 p-4">
+<!-- ABSENSI -->
+<div class="bg-white rounded-2xl shadow p-4 mb-6">
   <h2 class="font-bold mb-3">ABSENSI</h2>
   <div class="overflow-x-auto">
     <table class="min-w-full text-sm">
       <thead class="bg-slate-100">
-        <tr>
-          <th class="p-3 text-left">Nama</th>
-          <th class="p-3 text-center">Status</th>
-        </tr>
+        <tr><th class="p-3 text-left">Nama</th><th class="p-3 text-center">Status</th></tr>
       </thead>
       <tbody id="tabelAbsensi" class="divide-y"></tbody>
     </table>
   </div>
 </div>
 
-<div class="bg-white rounded-2xl shadow mb-6 p-4">
+<!-- PEMANEN -->
+<div class="bg-white rounded-2xl shadow p-4 mb-6">
   <h2 class="font-bold mb-3">PEMANEN</h2>
   <div class="overflow-x-auto">
     <table class="min-w-full text-sm">
@@ -94,57 +91,46 @@
   </div>
 </div>
 
-<div class="bg-white rounded-2xl shadow mb-6 p-4">
+<!-- BRONDOL -->
+<div class="bg-white rounded-2xl shadow p-4 mb-6">
   <h2 class="font-bold mb-3">KARUNG BRONDOL</h2>
-  <div class="overflow-x-auto">
-    <table class="min-w-full text-sm">
-      <thead class="bg-slate-100">
-        <tr>
-          <th class="p-3 text-left">Nama</th>
-          <th class="p-3 text-center">Jumlah</th>
-          <th class="p-3 text-left">Keterangan</th>
-        </tr>
-      </thead>
-      <tbody id="tabelBrondol" class="divide-y"></tbody>
-      <tfoot>
-        <tr class="bg-green-50 font-bold">
-          <td class="p-3 text-right">TOTAL</td>
-          <td id="totalKarung" class="p-3 text-center text-lg">0</td>
-          <td></td>
-        </tr>
-      </tfoot>
-    </table>
-  </div>
+  <table class="min-w-full text-sm">
+    <thead class="bg-slate-100">
+      <tr><th class="p-3 text-left">Nama</th><th class="p-3 text-center">Jumlah</th><th class="p-3">Keterangan</th></tr>
+    </thead>
+    <tbody id="tabelBrondol" class="divide-y"></tbody>
+    <tfoot>
+      <tr class="bg-green-50 font-bold">
+        <td class="p-3 text-right">TOTAL</td>
+        <td id="totalKarung" class="p-3 text-center text-lg">0</td>
+        <td></td>
+      </tr>
+    </tfoot>
+  </table>
 </div>
 
-<div class="bg-white rounded-2xl shadow mb-6 p-4">
+<!-- KERJA -->
+<div class="bg-white rounded-2xl shadow p-4 mb-6">
   <h2 class="font-bold mb-3">SEMPROT & TEBAS</h2>
-  <div class="overflow-x-auto">
-    <table class="min-w-full text-sm">
-      <thead class="bg-slate-100">
-        <tr>
-          <th class="p-3">Jenis</th>
-          <th class="p-3">Blok</th>
-          <th class="p-3">Anggota</th>
-          <th class="p-3">Status</th>
-        </tr>
-      </thead>
-      <tbody id="tabelKerja" class="divide-y"></tbody>
-    </table>
-  </div>
+  <table class="min-w-full text-sm">
+    <thead class="bg-slate-100">
+      <tr><th class="p-3">Jenis</th><th class="p-3">Blok</th><th class="p-3">Anggota</th><th class="p-3">Status</th></tr>
+    </thead>
+    <tbody id="tabelKerja" class="divide-y"></tbody>
+  </table>
 </div>
 
 <!-- EXPORT + PROGRESS -->
 <div class="grid md:grid-cols-2 gap-4">
   <div class="bg-white rounded-2xl shadow p-4 flex gap-3">
-    <button onclick="exportPDF()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl">📥 PDF</button>
-    <button onclick="exportExcel()" class="bg-slate-700 hover:bg-slate-800 text-white px-4 py-2 rounded-xl">📊 Excel</button>
+    <button onclick="exportPDF()" class="bg-green-600 text-white px-4 py-2 rounded-xl">📥 PDF</button>
+    <button onclick="exportExcel()" class="bg-slate-700 text-white px-4 py-2 rounded-xl">📊 Excel</button>
   </div>
 
   <div class="bg-white rounded-2xl shadow p-4">
     <h2 class="font-bold mb-2">📈 Progres Panen Hari Ini</h2>
     <div class="w-full bg-slate-200 rounded-full h-4 overflow-hidden">
-      <div id="progressFill" class="bg-green-500 h-full transition-all"></div>
+      <div id="progressFill" class="bg-green-500 h-full"></div>
     </div>
     <p id="progressText" class="text-center font-bold mt-2">0%</p>
   </div>
@@ -153,7 +139,7 @@
 </div>
 
 <footer class="text-center text-xs text-slate-500 py-6">
-  © 2026 Dashboard Mandor Sawit
+© 2026 Dashboard Mandor Sawit
 </footer>
 
 <script>
@@ -165,19 +151,126 @@ firebase.initializeApp({
 const db=firebase.firestore();
 const today=()=>new Date().toISOString().slice(0,10);
 
-/* === SEMUA FUNCTION LOGIKA SAMA SEPERTI SEBELUMNYA === */
 function badge(txt){
-  return `<span class="px-3 py-1 rounded-full text-xs font-bold ${
-    txt==="Hadir"?"bg-blue-100 text-blue-700":
-    txt==="Selesai"?"bg-green-100 text-green-700":
-    "bg-red-100 text-red-700"
-  }">${txt}</span>`;
+  const map={
+    Hadir:"bg-blue-100 text-blue-700",
+    Tidak:"bg-red-100 text-red-700",
+    Selesai:"bg-green-100 text-green-700",
+    Belum:"bg-red-100 text-red-700"
+  };
+  return `<span class="px-3 py-1 rounded-full text-xs font-bold ${map[txt]||""}">${txt}</span>`;
 }
 
-/* (fungsi loadRingkasan, loadAbsensi, loadPemanen, loadBrondol, loadKerja, loadProgress, loadAll)
-   SAMA PERSIS dengan script stabil sebelumnya – TIDAK SAYA UBAH
-*/
+async function loadRingkasan(){
+  const snap=await db.collection("pemanen").get();
+  const now=new Date();
+  let h=0,s7=0,b=0,l=0;
+  snap.forEach(d=>{
+    const v=d.data();
+    if(v.jenis!=="Janjang")return;
+    const t=new Date(v.tanggal);
+    const diff=(now-t)/86400000;
+    if(diff<1)h+=v.jumlah;
+    if(diff<7)s7+=v.jumlah;
+    if(t.getMonth()===now.getMonth())b+=v.jumlah;
+    const lm=new Date(now.getFullYear(),now.getMonth()-1,1);
+    if(t.getMonth()===lm.getMonth())l+=v.jumlah;
+  });
+  sumHari.innerText=h;
+  sum7.innerText=s7;
+  sumBulan.innerText=b;
+  sumLalu.innerText=l;
+}
 
+async function loadAbsensi(t){
+  tabelAbsensi.innerHTML="";
+  (await db.collection("absensi").get()).forEach(d=>{
+    const v=d.data();
+    if(v.tanggal!==t)return;
+    tabelAbsensi.innerHTML+=`<tr><td class="p-3">${v.nama}</td><td class="p-3 text-center">${badge(v.status)}</td></tr>`;
+  });
+}
+
+async function loadPemanen(t){
+  tabelPemanen.innerHTML="";let total=0;
+  (await db.collection("pemanen").get()).forEach(d=>{
+    const v=d.data();
+    if(v.tanggal!==t||v.jenis!=="Janjang")return;
+    total+=v.jumlah;
+    tabelPemanen.innerHTML+=
+      `<tr>
+        <td class="p-3">${v.nama}</td>
+        <td class="p-3 text-center">${v.blok}</td>
+        <td class="p-3 text-center">${v.jumlah}</td>
+        <td class="p-3 text-center">${badge(v.status||"Belum")}</td>
+      </tr>`;
+  });
+  totalJanjang.innerText=total;
+}
+
+async function loadBrondol(t){
+  tabelBrondol.innerHTML="";let total=0;
+  (await db.collection("pemanen").get()).forEach(d=>{
+    const v=d.data();
+    if(v.tanggal!==t||v.jenis!=="Brondol")return;
+    total+=v.jumlah;
+    tabelBrondol.innerHTML+=
+      `<tr><td class="p-3">${v.nama}</td><td class="p-3 text-center">${v.jumlah}</td><td class="p-3">${v.keterangan||""}</td></tr>`;
+  });
+  totalKarung.innerText=total;
+}
+
+async function loadKerja(t){
+  tabelKerja.innerHTML="";
+  (await db.collection("kerja").get()).forEach(d=>{
+    const v=d.data();
+    if(v.tanggal!==t)return;
+    tabelKerja.innerHTML+=
+      `<tr><td class="p-3">${v.jenis}</td><td class="p-3">${v.blok}</td><td class="p-3">${v.anggota}</td><td class="p-3 text-center">${badge("Selesai")}</td></tr>`;
+  });
+}
+
+async function loadProgress(){
+  const snap=await db.collection("pemanen").get();
+  let s=0,t=0;
+  snap.forEach(d=>{
+    const v=d.data();
+    if(v.tanggal!==today()||v.jenis!=="Janjang")return;
+    t+=v.jumlah;
+    if(v.status==="Selesai")s+=v.jumlah;
+  });
+  const p=t?Math.round((s/t)*100):0;
+  progressFill.style.width=p+"%";
+  progressText.innerText=p+"% ("+s+"/"+t+" Tandan)";
+}
+
+function loadAll(){
+  const t=tanggal.value;
+  loadRingkasan();
+  loadAbsensi(t);
+  loadPemanen(t);
+  loadBrondol(t);
+  loadKerja(t);
+  loadProgress();
+}
+
+tanggal.value=today();
+tanggal.addEventListener("change",loadAll);
+loadAll();
+
+/* EXPORT */
+async function exportPDF(){
+  const { jsPDF }=window.jspdf;
+  const pdf=new jsPDF("p","mm","a4");
+  const canvas=await html2canvas(areaExport,{scale:2});
+  pdf.addImage(canvas.toDataURL("image/png"),"PNG",10,10,190,0);
+  pdf.save("laporan-sawit.pdf");
+}
+function exportExcel(){
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet([{Info:"Dashboard Sawit"}]),"Laporan");
+  XLSX.writeFile(wb,"laporan-sawit.xlsx");
+}
 </script>
 
 </body>
