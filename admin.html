@@ -363,7 +363,18 @@ function today(){
 
 /* ================= AUTH ================= */
 window.login = function login(){
-  auth.signInWithEmailAndPassword(email.value,password.value)
+  const emailInput = document.getElementById('email');
+  const passwordInput = document.getElementById('password');
+  const loginBox = document.getElementById('loginBox');
+  const panelBox = document.getElementById('panelBox');
+  const tanggalInput = document.getElementById('tanggalInput');
+  
+  if(!emailInput.value || !passwordInput.value) {
+    alert('Email dan password harus diisi!');
+    return;
+  }
+  
+  auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value)
     .then(()=>{
       loginBox.style.display="none";
       panelBox.style.display="block";
@@ -373,7 +384,7 @@ window.login = function login(){
       renderPemanenAdmin();
       renderKerjaAdmin();
     })
-    .catch(e=>alert(e.message));
+    .catch(e=>alert('Login gagal: ' + e.message));
 }
 window.logout = function logout(){
   auth.signOut().then(()=>location.reload());
