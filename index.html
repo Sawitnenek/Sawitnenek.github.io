@@ -4,16 +4,16 @@
 <meta charset="UTF-8">
 <title>Dashboard Laporan Sawit</title>
 
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-<!-- EXPORT -->
+<!-- Export -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
 <style>
-/* RESET */
 *{box-sizing:border-box}
 body{
   font-family:'Segoe UI',system-ui,Arial,sans-serif;
@@ -24,7 +24,6 @@ h2{text-align:center;margin:22px 0 4px;font-weight:700}
 .subtitle{text-align:center;color:#6b7280;margin-bottom:18px}
 .container{max-width:1100px;margin:auto;padding:14px}
 
-/* CARD */
 .card{
   background:#fff;
   padding:18px;
@@ -33,13 +32,9 @@ h2{text-align:center;margin:22px 0 4px;font-weight:700}
   box-shadow:0 10px 25px rgba(0,0,0,.07)
 }
 
-/* FILTER */
 .filter{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
-.filter input{
-  padding:8px 12px;border-radius:10px;border:1px solid #d1d5db
-}
+.filter input{padding:8px 12px;border-radius:10px;border:1px solid #d1d5db}
 
-/* RINGKASAN */
 .summary{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
@@ -55,10 +50,8 @@ h2{text-align:center;margin:22px 0 4px;font-weight:700}
 .summary .box h4{margin:0;font-size:.85rem;color:#166534}
 .summary .box b{display:block;margin-top:6px;font-size:1.5rem;color:#064e3b}
 
-/* SECTION */
 .section-title{font-weight:700;margin-bottom:10px;color:#14532d}
 
-/* TABLE */
 table{
   width:100%;
   border-collapse:separate;
@@ -78,40 +71,35 @@ thead th{
 tbody td{
   padding:11px;
   border-bottom:1px solid #e5e7eb;
-  text-align:center;
-  vertical-align:middle
+  text-align:center
 }
 tbody tr:nth-child(even){background:#f9fafb}
 tbody tr:hover{background:#ecfeff}
 
-/* TOTAL ROW */
 tfoot tr{background:#f0fdf4}
 tfoot td{
-  padding:12px 10px;
+  padding:12px;
   font-weight:700;
   text-align:center;
   border-top:2px solid #bbf7d0;
   color:#14532d
 }
-.total-number{font-size:1rem;letter-spacing:.6px}
 
-/* BADGE */
 .badge{
-  padding:5px 12px;
+  padding:6px 14px;
   border-radius:999px;
   font-size:.7rem;
-  font-weight:700
+  font-weight:700;
+  cursor:pointer
 }
 .hadir{background:#dbeafe;color:#1e40af}
 .tidak{background:#fee2e2;color:#991b1b}
 .selesai{background:#dcfce7;color:#14532d}
-.belum{background:#fee2e2;color:#991b1b}
 
 footer{text-align:center;padding:16px;color:#6b7280;font-size:.8rem}
 
 @media(max-width:700px){
   table{display:block;overflow-x:auto;white-space:nowrap}
-  h2{font-size:1.25rem}
 }
 </style>
 </head>
@@ -120,7 +108,7 @@ footer{text-align:center;padding:16px;color:#6b7280;font-size:.8rem}
 <h2>📊 Dashboard Laporan Sawit</h2>
 <div class="subtitle">Rekap Harian Kebun</div>
 
-<div class="container">
+<div class="container" id="areaExport">
 
 <!-- FILTER -->
 <div class="card">
@@ -134,7 +122,7 @@ footer{text-align:center;padding:16px;color:#6b7280;font-size:.8rem}
 <div class="card">
   <div class="summary">
     <div class="box"><h4>🌴 Hari Ini</h4><b id="sumHari">0</b></div>
-    <div class="box"><h4>📊 7 Hari Terakhir</h4><b id="sum7">0</b></div>
+    <div class="box"><h4>📊 7 Hari</h4><b id="sum7">0</b></div>
     <div class="box"><h4>📈 Bulan Ini</h4><b id="sumBulan">0</b></div>
     <div class="box"><h4>📉 Bulan Lalu</h4><b id="sumLalu">0</b></div>
   </div>
@@ -142,9 +130,9 @@ footer{text-align:center;padding:16px;color:#6b7280;font-size:.8rem}
 
 <!-- ABSENSI -->
 <div class="card">
-  <div class="section-title">ABSENSI ANGGOTA</div>
+  <div class="section-title">ABSENSI</div>
   <table>
-    <thead><tr><th>NAMA</th><th>STATUS</th></tr></thead>
+    <thead><tr><th>Nama</th><th>Status</th></tr></thead>
     <tbody id="tabelAbsensi"></tbody>
   </table>
 </div>
@@ -153,59 +141,27 @@ footer{text-align:center;padding:16px;color:#6b7280;font-size:.8rem}
 <div class="card">
   <div class="section-title">PEMANEN</div>
   <table>
-    <thead><tr><th>NAMA</th><th>BLOK</th><th>JANJANG</th><th>STATUS</th></tr></thead>
+    <thead><tr><th>Nama</th><th>Blok</th><th>Janjang</th><th>Status</th></tr></thead>
     <tbody id="tabelPemanen"></tbody>
-    <tfoot>
-      <tr>
-        <td colspan="2">TOTAL</td>
-        <td id="totalJanjang" class="total-number">0</td>
-        <td></td>
-      </tr>
-    </tfoot>
+    <tfoot><tr><td colspan="2">TOTAL</td><td id="totalJanjang">0</td><td></td></tr></tfoot>
   </table>
 </div>
 
-<!-- BRONDOL -->
+<!-- PROGRES & EXPORT -->
 <div class="card">
-  <div class="section-title">KARUNG BRONDOL</div>
-  <table>
-    <thead><tr><th>NAMA</th><th>JUMLAH</th><th>KETERANGAN</th></tr></thead>
-    <tbody id="tabelBrondol"></tbody>
-    <tfoot>
-      <tr>
-        <td>TOTAL</td>
-        <td id="totalKarung" class="total-number">0</td>
-        <td></td>
-      </tr>
-    </tfoot>
-  </table>
-</div>
+  <div class="section-title">📈 PROGRES & EXPORT</div>
 
-<!-- KERJA -->
-<div class="card">
-  <div class="section-title">SEMPROT & TEBAS</div>
-  <table>
-    <thead><tr><th>JENIS</th><th>BLOK</th><th>ANGGOTA</th><th>STATUS</th></tr></thead>
-    <tbody id="tabelKerja"></tbody>
-  </table>
-</div>
-
-<!-- PROGRESS & EXPORT -->
-<div class="card">
-  <div class="section-title">📈 PROGRES PANEN HARIAN</div>
-
-  <div style="margin-bottom:14px">
-    <div style="background:#e5e7eb;border-radius:999px;height:14px;overflow:hidden">
-      <div id="progressBar"
-        style="height:100%;width:0%;background:linear-gradient(90deg,#22c55e,#16a34a);transition:.4s">
-      </div>
+  <div style="background:#e5e7eb;border-radius:999px;height:14px;overflow:hidden">
+    <div id="progressBar"
+      style="height:100%;width:0%;background:linear-gradient(90deg,#22c55e,#16a34a)">
     </div>
-    <div id="progressText" style="text-align:center;font-weight:700;margin-top:6px">0%</div>
   </div>
+  <div id="progressText" style="text-align:center;font-weight:700;margin:6px 0 12px">0%</div>
 
   <div style="display:flex;gap:10px;flex-wrap:wrap">
-    <button onclick="exportPDF()" class="badge selesai">📥 Export PDF</button>
-    <button onclick="exportExcel()" class="badge hadir">📊 Export Excel</button>
+    <span class="badge selesai" onclick="exportPDF()">📥 PDF</span>
+    <span class="badge tidak" onclick="exportPNG()">🖼️ PNG</span>
+    <span class="badge hadir" onclick="exportExcel()">📊 Excel</span>
   </div>
 </div>
 
@@ -222,102 +178,37 @@ firebase.initializeApp({
 const db=firebase.firestore();
 const today=()=>new Date().toISOString().slice(0,10);
 
-/* === SCRIPT ASLI (TIDAK DIUBAH) === */
-
-async function loadRingkasan(){
-  const snap=await db.collection("pemanen").get();
-  const now=new Date();
-  let h=0,s7=0,bln=0,lalu=0;
-  snap.forEach(d=>{
-    const v=d.data();
-    if(v.jenis!=="Janjang")return;
-    const t=new Date(v.tanggal);
-    const diff=(now-t)/86400000;
-    if(diff<1)h+=v.jumlah;
-    if(diff<7)s7+=v.jumlah;
-    if(t.getMonth()===now.getMonth()&&t.getFullYear()===now.getFullYear())bln+=v.jumlah;
-    const lm=new Date(now.getFullYear(),now.getMonth()-1,1);
-    if(t.getMonth()===lm.getMonth()&&t.getFullYear()===lm.getFullYear())lalu+=v.jumlah;
-  });
-  sumHari.innerText=h+" Tandan";
-  sum7.innerText=s7+" Tandan";
-  sumBulan.innerText=bln+" Tandan";
-  sumLalu.innerText=lalu+" Tandan";
-}
-
-async function loadAbsensi(t){
-  tabelAbsensi.innerHTML="";
-  (await db.collection("absensi").get()).forEach(d=>{
-    const v=d.data(); if(v.tanggal!==t)return;
-    tabelAbsensi.innerHTML+=`
-      <tr><td>${v.nama}</td>
-      <td><span class="badge ${v.status==="Hadir"?"hadir":"tidak"}">${v.status}</span></td></tr>`;
-  });
-}
-
-async function loadPemanen(t){
-  tabelPemanen.innerHTML="";
-  let total=0;
-  (await db.collection("pemanen").get()).forEach(d=>{
-    const v=d.data();
-    if(v.tanggal!==t||v.jenis!=="Janjang")return;
-    total+=v.jumlah;
-    const status=v.status||"Belum";
-    tabelPemanen.innerHTML+=`
-      <tr><td>${v.nama}</td><td>${v.blok}</td><td>${v.jumlah}</td>
-      <td><span class="badge ${status==="Selesai"?"selesai":"belum"}">${status}</span></td></tr>`;
-  });
-  totalJanjang.innerText=total;
-}
-
-async function loadBrondol(t){
-  tabelBrondol.innerHTML="";
-  let total=0;
-  (await db.collection("pemanen").get()).forEach(d=>{
-    const v=d.data();
-    if(v.tanggal!==t||v.jenis!=="Brondol")return;
-    total+=v.jumlah;
-    tabelBrondol.innerHTML+=`
-      <tr><td>${v.nama}</td><td>${v.jumlah}</td><td>${v.keterangan||""}</td></tr>`;
-  });
-  totalKarung.innerText=total;
-}
-
-async function loadKerja(t){
-  tabelKerja.innerHTML="";
-  (await db.collection("kerja").get()).forEach(d=>{
-    const v=d.data(); if(v.tanggal!==t)return;
-    tabelKerja.innerHTML+=`
-      <tr><td>${v.jenis}</td><td>${v.blok}</td><td>${v.anggota}</td>
-      <td><span class="badge selesai">Selesai</span></td></tr>`;
-  });
-}
-
-/* === FITUR TAMBAHAN === */
-
+/* PROGRESS */
 async function loadProgress(t){
   let selesai=0,total=0;
   (await db.collection("pemanen").get()).forEach(d=>{
     const v=d.data();
     if(v.tanggal!==t||v.jenis!=="Janjang")return;
-    total++;
-    if(v.status==="Selesai")selesai++;
+    total++; if(v.status==="Selesai")selesai++;
   });
-  const persen=total?Math.round((selesai/total)*100):0;
-  progressBar.style.width=persen+"%";
-  progressText.innerText=persen+"% Selesai";
+  const p=total?Math.round((selesai/total)*100):0;
+  progressBar.style.width=p+"%";
+  progressText.innerText=p+"% Selesai";
 }
 
+/* EXPORT */
 function exportPDF(){
-  html2canvas(document.body).then(canvas=>{
+  html2canvas(areaExport).then(c=>{
     const pdf=new jspdf.jsPDF("p","mm","a4");
-    const img=canvas.toDataURL("image/png");
-    const w=210,h=canvas.height*w/canvas.width;
+    const img=c.toDataURL("image/png");
+    const w=210,h=c.height*w/c.width;
     pdf.addImage(img,"PNG",0,0,w,h);
     pdf.save("laporan_sawit.pdf");
   });
 }
-
+function exportPNG(){
+  html2canvas(areaExport).then(c=>{
+    const a=document.createElement("a");
+    a.download="laporan_sawit.png";
+    a.href=c.toDataURL("image/png");
+    a.click();
+  });
+}
 function exportExcel(){
   const wb=XLSX.utils.book_new();
   document.querySelectorAll("table").forEach((t,i)=>{
@@ -328,15 +219,8 @@ function exportExcel(){
 
 /* LOAD */
 function loadAll(){
-  const t=tanggal.value;
-  loadRingkasan();
-  loadAbsensi(t);
-  loadPemanen(t);
-  loadBrondol(t);
-  loadKerja(t);
-  loadProgress(t);
+  loadProgress(tanggal.value);
 }
-
 tanggal.value=today();
 tanggal.addEventListener("change",loadAll);
 loadAll();
