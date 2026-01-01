@@ -144,8 +144,8 @@ h2{
 /* TABLE */
 table{
   width:100%;
-  border-collapse:separate;
-  border-spacing:0;
+  table-layout:fixed;
+  border-collapse:collapse;
   border-radius:16px;
   overflow:hidden;
   font-size:.95rem;
@@ -154,14 +154,18 @@ table{
 thead th{
   background:linear-gradient(135deg,#667eea,#764ba2);
   color:#fff;
-  padding:16px 12px;
-  font-size:.8rem;
-  letter-spacing:1px;
+  padding:14px 10px;
+  font-size:.78rem;
+  letter-spacing:.8px;
   text-align:center;
   font-weight:700;
   text-transform:uppercase;
   position:relative;
-  box-shadow:0 2px 8px rgba(102,126,234,.3)
+  box-shadow:0 2px 8px rgba(102,126,234,.3);
+  border:none;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis
 }
 thead th::after{
   content:'';
@@ -173,23 +177,23 @@ thead th::after{
   background:linear-gradient(90deg,transparent,#fff,transparent)
 }
 tbody td{
-  padding:14px 12px;
+  padding:12px 10px;
   border-bottom:1px solid #f1f5f9;
   text-align:center;
   vertical-align:middle;
   color:#475569;
-  font-weight:500
+  font-weight:500;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis
 }
 tbody tr{
-  transition:all .2s;
+  transition:background-color .2s;
   background:#fff
 }
 tbody tr:nth-child(even){background:#f8fafc}
 tbody tr:hover{
-  background:linear-gradient(90deg,#f0f4ff,#faf5ff);
-  transform:scale(1.01);
-  box-shadow:0 4px 12px rgba(102,126,234,.15);
-  z-index:1
+  background:linear-gradient(90deg,#f0f4ff,#faf5ff)
 }
 
 /* TOTAL ROW */
@@ -442,11 +446,14 @@ button:active{
   .card{padding:16px;margin-bottom:16px;border-radius:16px}
   
   /* Table Mobile */
-  table{display:block;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch;font-size:.85rem}
-  thead th{padding:10px 8px;font-size:.7rem}
-  tbody td{padding:10px 8px}
-  tfoot td{padding:12px 8px;font-size:.95rem}
-  .total-number{font-size:1.1rem}
+  table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;font-size:.85rem;table-layout:auto}
+  thead{display:table;width:100%;table-layout:fixed}
+  tbody{display:table;width:100%;table-layout:fixed}
+  tfoot{display:table;width:100%;table-layout:fixed}
+  thead th{padding:10px 6px;font-size:.68rem;white-space:normal}
+  tbody td{padding:10px 6px;white-space:normal}
+  tfoot td{padding:12px 6px;font-size:.9rem}
+  .total-number{font-size:1.05rem}
   
   /* Summary Mobile */
   .summary{grid-template-columns:repeat(2,1fr);gap:10px}
