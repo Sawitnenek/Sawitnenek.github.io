@@ -949,6 +949,29 @@ searchInput.addEventListener("input",()=>{
   loadBrondol(t);
   loadKerja(t);
 });
+
+// Auto-update tanggal setiap tengah malam
+function checkDateChange(){
+  const currentDate=today();
+  if(tanggal.value!==currentDate){
+    tanggal.value=currentDate;
+    updateDateDisplay(currentDate);
+    loadAll();
+  }
+}
+// Cek setiap 1 menit apakah hari sudah berganti
+setInterval(checkDateChange,60000);
+
+// Force reload if page is cached (untuk GitHub Pages)
+window.addEventListener('pageshow',function(event){
+  if(event.persisted){
+    // Page loaded from cache, refresh tanggal
+    tanggal.value=today();
+    updateDateDisplay(today());
+    loadAll();
+  }
+});
+
 loadAll();
 </script>
 
