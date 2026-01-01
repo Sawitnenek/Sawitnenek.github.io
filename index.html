@@ -9,123 +9,188 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <style>
-/* ===== GLOBAL ===== */
 body {
   font-family: "Segoe UI", Arial, sans-serif;
-  background: #f3f6f9;
+  background: #f1f5f9;
+  padding: 0;
   margin: 0;
   color: #333;
 }
 h2 {
   text-align: center;
-  margin: 18px 0 4px;
-  font-size: 1.6rem;
+  margin-top: 24px;
+  font-size: 2rem;
 }
 .subtitle {
   text-align: center;
-  color: #6b7280;
-  font-size: 0.95rem;
-  margin-bottom: 14px;
+  color: #666;
+  margin-bottom: 20px;
 }
 .container {
-  max-width: 960px;
-  margin: auto;
-  padding: 12px;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 16px;
 }
-
-/* ===== CARD ===== */
 .card {
   background: #fff;
-  padding: 14px;
-  border-radius: 14px;
-  margin-bottom: 16px;
-  box-shadow: 0 6px 18px rgba(0,0,0,.06);
+  padding: 20px 16px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.07);
 }
-
-/* ===== RINGKASAN ===== */
-.summary {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-}
-.summary .box {
-  background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
-  border-radius: 14px;
-  padding: 14px 8px;
-  text-align: center;
-}
-.summary .box h4 {
-  margin: 0;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #1b5e20;
-}
-.summary .box b {
-  display: block;
-  margin-top: 4px;
-  font-size: 1.4rem;
-  color: #0f3d1e;
-}
-
-/* ===== FILTER ===== */
 .filter {
   display: flex;
   justify-content: center;
+  gap: 10px;
   align-items: center;
-  gap: 8px;
   flex-wrap: wrap;
 }
 input[type="date"] {
-  padding: 10px 12px;
-  font-size: 0.95rem;
-  border-radius: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
   border: 1px solid #d1d5db;
+  font-size: 1rem;
 }
-
-/* ===== TABLE ===== */
 table {
   width: 100%;
   border-collapse: collapse;
+  margin-top: 10px;
   background: #fff;
-  border-radius: 12px;
+  border-radius: 10px;
   overflow: hidden;
 }
-th {
-  background: linear-gradient(90deg, #2e7d32, #1b5e20);
-  color: #fff;
-  padding: 12px 6px;
-  font-size: 0.85rem;
+th, td {
+  padding: 12px 8px;
+  border-bottom: 1px solid #e0e0e0;
+  text-align: center;
+  font-size: 15px;
 }
-td {
-  padding: 10px 6px;
-  font-size: 0.9rem;
-  border-bottom: 1px solid #e5e7eb;
+th {
+  background: linear-gradient(90deg, #388e3c 0%, #1b5e20 100%);
+  color: #fff;
+  font-size: 1rem;
+  text-transform: uppercase;
+}
+tr:hover {
+  background: #f9fbe7;
 }
 tfoot td {
   font-weight: bold;
   background: #e8f5e9;
 }
-
-/* ===== BADGE ===== */
 .badge {
   padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: bold;
 }
-.selesai { background: #c8e6c9; color: #1b5e20; }
-.belum   { background: #ffcdd2; color: #b71c1c; }
-.hadir   { background: #bbdefb; color: #0d47a1; }
-.tidak   { background: #ffcdd2; color: #b71c1c; }
-
-/* ===== MOBILE ===== */
-@media (max-width: 768px) {
-  h2 { font-size: 1.2rem; }
-  .summary { grid-template-columns: repeat(2, 1fr); }
-  table { display: block; overflow-x: auto; white-space: nowrap; }
+.selesai {
+  background: #c8e6c9;
+  color: #1b5e20;
 }
-@media (max-width: 420px) {
-  .summary { grid-template-columns: 1fr; }
+.belum {
+  background: #ffcdd2;
+  color: #b71c1c;
+}
+.hadir {
+  background: #bbdefb;
+  color: #0d47a1;
+}
+.tidak {
+  background: #ffcdd2;
+  color: #b71c1c;
+}
+img {
+  width: 70px;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+}
+.section-title {
+  font-weight: bold;
+  margin-bottom: 8px;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+}
+#scrollTopBtn {
+  display: none;
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 99;
+  background: #1b5e20;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  font-size: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+#scrollTopBtn:hover {
+  background: #388e3c;
+}
+#loadingSpinner {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255,255,255,0.7);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+#loadingSpinner .spinner {
+  border: 6px solid #e0e0e0;
+  border-top: 6px solid #1b5e20;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.absensi-total {
+  text-align: right;
+  font-size: 0.98rem;
+  color: #333;
+  margin-top: 4px;
+  font-weight: 500;
+}
+@media (max-width: 700px) {
+  .container {
+    max-width: 100%;
+    padding: 4px;
+  }
+  .card {
+    padding: 10px 2px;
+    margin-bottom: 10px;
+  }
+  h2 {
+    font-size: 1.1rem;
+    margin-top: 8px;
+  }
+  .subtitle {
+    font-size: 0.95rem;
+  }
+  th, td {
+    font-size: 1.08rem;
+    padding: 10px 2px;
+  }
+  input[type="date"] {
+    font-size: 1.05rem;
+    padding: 10px 4px;
+  }
+  table {
+    font-size: 1.08rem;
+    min-width: 600px;
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
 }
 </style>
 </head>
@@ -134,21 +199,6 @@ tfoot td {
 
 <h2>📊 Dashboard Laporan Sawit</h2>
 <div class="subtitle">Rekap Harian Kebun</div>
-
-<div class="container">
-
-<!-- RINGKASAN BUAH KELUAR -->
-<div class="card">
-  <div class="summary">
-    <div class="box"><h4>🌴 Hari Ini</h4><b id="sumHari">0</b></div>
-    <div class="box"><h4>📊 7 Hari Terakhir</h4><b id="sum7">0</b></div>
-    <div class="box"><h4>📈 Bulan Ini</h4><b id="sumBulan">0</b></div>
-    <div class="box"><h4>📉 Bulan Lalu</h4><b id="sumLalu">0</b></div>
-  </div>
-  <div style="text-align:center;font-size:.75rem;color:#6b7280;margin-top:6px">
-    Ringkasan berdasarkan waktu berjalan (real-time)
-  </div>
-</div>
 
 <!-- FILTER -->
 <div class="card">
@@ -162,73 +212,223 @@ tfoot td {
 <div class="card">
   <div class="section-title">ABSENSI ANGGOTA</div>
   <table>
-    <thead><tr><th>NAMA</th><th>STATUS</th></tr></thead>
+    <thead>
+      <tr><th>NAMA</th><th>STATUS</th></tr>
+    </thead>
     <tbody id="tabelAbsensi"></tbody>
   </table>
-  <div id="absensiTotal"></div>
+  <div class="absensi-total" id="absensiTotal"></div>
 </div>
 
 <!-- PEMANEN -->
 <div class="card">
   <div class="section-title">PEMANEN</div>
   <table>
-    <thead><tr><th>NAMA</th><th>BLOK</th><th>JANJANG</th><th>STATUS</th></tr></thead>
+    <thead>
+      <tr>
+        <th>NAMA</th>
+        <th>BLOK</th>
+        <th>JANJANG</th>
+        <th>STATUS</th>
+      </tr>
+    </thead>
     <tbody id="tabelPemanen"></tbody>
-    <tfoot><tr><td colspan="2">TOTAL</td><td id="totalJanjang">0</td><td></td></tr></tfoot>
+    <tfoot>
+      <tr>
+        <td colspan="2">TOTAL</td>
+        <td id="totalJanjang">0</td>
+        <td></td>
+      </tr>
+    </tfoot>
   </table>
 </div>
-
-<!-- BRONDOL -->
+<!-- KARUNG BRONDOL -->
 <div class="card">
   <div class="section-title">KARUNG BRONDOL</div>
   <table>
-    <thead><tr><th>NAMA</th><th>KARUNG</th><th>KETERANGAN</th></tr></thead>
+    <thead>
+      <tr>
+        <th>NAMA</th>
+        <th>KARUNG BRONDOL</th>
+        <th>KETERANGAN</th>
+      </tr>
+    </thead>
     <tbody id="tabelBrondol"></tbody>
-    <tfoot><tr><td>TOTAL</td><td id="totalKarung">0</td><td></td></tr></tfoot>
+    <tfoot>
+      <tr>
+        <td>TOTAL</td>
+        <td id="totalKarung">0</td>
+        <td></td>
+      </tr>
+    </tfoot>
   </table>
 </div>
 
+<!-- SEMPROT & TEBAS -->
+<div class="card">
+  <div class="section-title">SEMPROT & TEBAS</div>
+  <table>
+    <thead>
+      <tr>
+        <th>JENIS</th>
+        <th>BLOK</th>
+        <th>ANGGOTA</th>
+        <th>STATUS</th>
+      </tr>
+    </thead>
+    <tbody id="tabelKerja"></tbody>
+  </table>
 </div>
 
+<div id="loadingSpinner"><div class="spinner"></div></div>
+<button id="scrollTopBtn" title="Kembali ke Atas">↑</button>
+
+<footer style="text-align:center; color:#888; font-size:0.98rem; margin: 32px 0 12px 0;">
+  &copy; Copyright Irwan
+</footer>
+
 <script>
-/* FIREBASE */
-firebase.initializeApp({
+/* ===== FIREBASE ===== */
+const firebaseConfig = {
   apiKey: "AIzaSyCazwLdErOX7aYw3qh8VSyOsdV5i13S3nQ",
   authDomain: "tools-mandor-sawit.firebaseapp.com",
-  projectId: "tools-mandor-sawit"
-});
+  projectId: "tools-mandor-sawit",
+  storageBucket: "tools-mandor-sawit.firebasestorage.app",
+  messagingSenderId: "627595048726",
+  appId: "1:627595048726:web:3722898b86cd2474634237"
+};
+firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+/* ===== UTIL ===== */
 function today(){
   const d=new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
-/* RINGKASAN */
-async function loadRingkasan(){
-  const snap=await db.collection("pemanen").get();
-  const now=new Date();
-  let h=0,s7=0,b=0,l=0;
-  snap.forEach(doc=>{
-    const d=doc.data();
-    if(d.jenis!=="Janjang")return;
-    const t=new Date(d.tanggal);
-    const diff=(now-t)/86400000;
-    const j=Number(d.jumlah||0);
-    if(diff>=0&&diff<1)h+=j;
-    if(diff>=0&&diff<7)s7+=j;
-    if(t.getMonth()===now.getMonth())b+=j;
-    const lm=new Date(now.getFullYear(),now.getMonth()-1,1);
-    if(t.getMonth()===lm.getMonth())l+=j;
-  });
-  sumHari.innerText=h+" Tandan";
-  sum7.innerText=s7+" Tandan";
-  sumBulan.innerText=b+" Tandan";
-  sumLalu.innerText=l+" Tandan";
+// SCROLL TO TOP BUTTON
+const scrollTopBtn = document.getElementById("scrollTopBtn");
+window.onscroll = function() {
+  if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
+    scrollTopBtn.style.display = "block";
+  } else {
+    scrollTopBtn.style.display = "none";
+  }
+};
+scrollTopBtn.onclick = function() {
+  window.scrollTo({top: 0, behavior: 'smooth'});
+};
+
+// LOADING SPINNER
+function showLoading() {
+  document.getElementById("loadingSpinner").style.display = "flex";
+}
+function hideLoading() {
+  document.getElementById("loadingSpinner").style.display = "none";
 }
 
+/* ===== ABSENSI ===== */
+async function loadAbsensi(t){
+  showLoading();
+  const snap=await db.collection("absensi").get();
+  tabelAbsensi.innerHTML="";
+  let hadir=0;
+  snap.forEach(doc=>{
+    const d=doc.data();
+    if(d.tanggal===t){
+      tabelAbsensi.innerHTML+=`
+      <tr>
+        <td>${d.nama}</td>
+        <td><span class="badge ${d.status==="Hadir"?"hadir":"tidak"}">${d.status}</span></td>
+      </tr>`;
+      if(d.status==="Hadir") hadir++;
+    }
+  });
+  document.getElementById("absensiTotal").innerText = `Total Hadir: ${hadir}`;
+  hideLoading();
+}
+
+/* ===== PEMANEN ===== */
+async function loadPemanen(t){
+  showLoading();
+  const snap=await db.collection("pemanen").get();
+  tabelPemanen.innerHTML="";
+  let tj=0;
+  snap.forEach(doc=>{
+    const d=doc.data();
+    if(d.tanggal===t && d.jenis==="Janjang"){
+      tabelPemanen.innerHTML+=`
+      <tr>
+        <td>${d.nama}</td>
+        <td>${d.blok}</td>
+        <td>${d.jumlah}</td>
+        <td><span class="badge ${d.status==="Selesai"?"selesai":"belum"}">${d.status}</span></td>
+      </tr>`;
+      tj+=d.jumlah;
+    }
+  });
+  totalJanjang.innerText=tj;
+  hideLoading();
+}
+/* ===== KARUNG BRONDOL ===== */
+async function loadBrondol(t){
+  showLoading();
+  const snap=await db.collection("pemanen").get();
+  tabelBrondol.innerHTML="";
+  let tk=0;
+  snap.forEach(doc=>{
+    const d=doc.data();
+    if(d.tanggal===t && d.jenis==="Brondol"){
+      tabelBrondol.innerHTML+=`
+      <tr>
+        <td>${d.nama}</td>
+        <td>${d.jumlah}</td>
+        <td>${d.keterangan ? d.keterangan : "-"}</td>
+      </tr>`;
+      tk+=d.jumlah;
+    }
+  });
+  totalKarung.innerText=tk;
+  hideLoading();
+}
+/* ===== SEMPROT & TEBAS ===== */
+async function loadKerja(t){
+  showLoading();
+  tabelKerja.innerHTML="";
+  for(const jenis of ["semprot","tebas"]){
+    const snap=await db.collection(jenis).get();
+    snap.forEach(doc=>{
+      const d=doc.data();
+      if(d.tanggal===t){
+        const anggota = d.anggota===1 && d.nama
+          ? `1 Orang (${d.nama})`
+          : `${d.anggota} Orang`;
+        tabelKerja.innerHTML+=`
+        <tr>
+          <td>${jenis==="semprot"?"Semprot":"Tebas"}</td>
+          <td>${d.blok}</td>
+          <td>${anggota}</td>
+          <td><span class="badge ${d.status==="Selesai"?"selesai":"belum"}">${d.status}</span></td>
+        </tr>`;
+      }
+    });
+  }
+  hideLoading();
+}
+
+/* ===== LOAD ALL ===== */
+function loadAll(){
+  const t=tanggal.value;
+  loadAbsensi(t);
+  loadPemanen(t);
+  loadBrondol(t);
+  loadKerja(t);
+}
+
+/* ===== INIT ===== */
 tanggal.value=today();
-loadRingkasan();
+tanggal.addEventListener("change",loadAll);
+loadAll();
 </script>
 
 </body>
