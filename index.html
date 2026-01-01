@@ -7,6 +7,11 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
+<!-- EXPORT -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
 <style>
 /* RESET */
 *{box-sizing:border-box}
@@ -80,21 +85,15 @@ tbody tr:nth-child(even){background:#f9fafb}
 tbody tr:hover{background:#ecfeff}
 
 /* TOTAL ROW */
-tfoot tr{
-  background:#f0fdf4;
-}
+tfoot tr{background:#f0fdf4}
 tfoot td{
   padding:12px 10px;
   font-weight:700;
   text-align:center;
-  vertical-align:middle;
   border-top:2px solid #bbf7d0;
-  color:#14532d;
+  color:#14532d
 }
-.total-number{
-  font-size:1rem;
-  letter-spacing:.6px;
-}
+.total-number{font-size:1rem;letter-spacing:.6px}
 
 /* BADGE */
 .badge{
@@ -191,25 +190,25 @@ footer{text-align:center;padding:16px;color:#6b7280;font-size:.8rem}
   </table>
 </div>
 
-  <!-- PROGRES & EXPORT -->
+<!-- PROGRESS & EXPORT -->
 <div class="card">
   <div class="section-title">📈 PROGRES PANEN HARIAN</div>
 
   <div style="margin-bottom:14px">
     <div style="background:#e5e7eb;border-radius:999px;height:14px;overflow:hidden">
       <div id="progressBar"
-           style="height:100%;width:0%;background:linear-gradient(90deg,#22c55e,#16a34a);transition:.4s">
+        style="height:100%;width:0%;background:linear-gradient(90deg,#22c55e,#16a34a);transition:.4s">
       </div>
     </div>
-    <div id="progressText" style="text-align:center;font-weight:700;margin-top:6px">
-      0%
-    </div>
+    <div id="progressText" style="text-align:center;font-weight:700;margin-top:6px">0%</div>
   </div>
 
   <div style="display:flex;gap:10px;flex-wrap:wrap">
     <button onclick="exportPDF()" class="badge selesai">📥 Export PDF</button>
     <button onclick="exportExcel()" class="badge hadir">📊 Export Excel</button>
   </div>
+</div>
+
 </div>
 
 <footer>© 2026 Copyright Irwan</footer>
@@ -223,7 +222,8 @@ firebase.initializeApp({
 const db=firebase.firestore();
 const today=()=>new Date().toISOString().slice(0,10);
 
-/* RINGKASAN */
+/* === SCRIPT ASLI (TIDAK DIUBAH) === */
+
 async function loadRingkasan(){
   const snap=await db.collection("pemanen").get();
   const now=new Date();
@@ -245,20 +245,16 @@ async function loadRingkasan(){
   sumLalu.innerText=lalu+" Tandan";
 }
 
-/* ABSENSI */
 async function loadAbsensi(t){
   tabelAbsensi.innerHTML="";
   (await db.collection("absensi").get()).forEach(d=>{
     const v=d.data(); if(v.tanggal!==t)return;
     tabelAbsensi.innerHTML+=`
-      <tr>
-        <td>${v.nama}</td>
-        <td><span class="badge ${v.status==="Hadir"?"hadir":"tidak"}">${v.status}</span></td>
-      </tr>`;
+      <tr><td>${v.nama}</td>
+      <td><span class="badge ${v.status==="Hadir"?"hadir":"tidak"}">${v.status}</span></td></tr>`;
   });
 }
 
-/* PEMANEN */
 async function loadPemanen(t){
   tabelPemanen.innerHTML="";
   let total=0;
@@ -267,19 +263,13 @@ async function loadPemanen(t){
     if(v.tanggal!==t||v.jenis!=="Janjang")return;
     total+=v.jumlah;
     const status=v.status||"Belum";
-    const cls=status==="Selesai"?"selesai":"belum";
     tabelPemanen.innerHTML+=`
-      <tr>
-        <td>${v.nama}</td>
-        <td>${v.blok}</td>
-        <td>${v.jumlah}</td>
-        <td><span class="badge ${cls}">${status}</span></td>
-      </tr>`;
+      <tr><td>${v.nama}</td><td>${v.blok}</td><td>${v.jumlah}</td>
+      <td><span class="badge ${status==="Selesai"?"selesai":"belum"}">${status}</span></td></tr>`;
   });
   totalJanjang.innerText=total;
 }
 
-/* BRONDOL */
 async function loadBrondol(t){
   tabelBrondol.innerHTML="";
   let total=0;
@@ -293,19 +283,47 @@ async function loadBrondol(t){
   totalKarung.innerText=total;
 }
 
-/* KERJA */
 async function loadKerja(t){
   tabelKerja.innerHTML="";
   (await db.collection("kerja").get()).forEach(d=>{
     const v=d.data(); if(v.tanggal!==t)return;
     tabelKerja.innerHTML+=`
-      <tr>
-        <td>${v.jenis}</td>
-        <td>${v.blok}</td>
-        <td>${v.anggota}</td>
-        <td><span class="badge selesai">Selesai</span></td>
-      </tr>`;
+      <tr><td>${v.jenis}</td><td>${v.blok}</td><td>${v.anggota}</td>
+      <td><span class="badge selesai">Selesai</span></td></tr>`;
   });
+}
+
+/* === FITUR TAMBAHAN === */
+
+async function loadProgress(t){
+  let selesai=0,total=0;
+  (await db.collection("pemanen").get()).forEach(d=>{
+    const v=d.data();
+    if(v.tanggal!==t||v.jenis!=="Janjang")return;
+    total++;
+    if(v.status==="Selesai")selesai++;
+  });
+  const persen=total?Math.round((selesai/total)*100):0;
+  progressBar.style.width=persen+"%";
+  progressText.innerText=persen+"% Selesai";
+}
+
+function exportPDF(){
+  html2canvas(document.body).then(canvas=>{
+    const pdf=new jspdf.jsPDF("p","mm","a4");
+    const img=canvas.toDataURL("image/png");
+    const w=210,h=canvas.height*w/canvas.width;
+    pdf.addImage(img,"PNG",0,0,w,h);
+    pdf.save("laporan_sawit.pdf");
+  });
+}
+
+function exportExcel(){
+  const wb=XLSX.utils.book_new();
+  document.querySelectorAll("table").forEach((t,i)=>{
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.table_to_sheet(t),"Sheet"+(i+1));
+  });
+  XLSX.writeFile(wb,"laporan_sawit.xlsx");
 }
 
 /* LOAD */
@@ -316,6 +334,7 @@ function loadAll(){
   loadPemanen(t);
   loadBrondol(t);
   loadKerja(t);
+  loadProgress(t);
 }
 
 tanggal.value=today();
