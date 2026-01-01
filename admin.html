@@ -428,11 +428,15 @@ function hapusAbsensi(id) {
 let absensiEditId = null;
 function editAbsensi(id, nama, status) {
   absensiEditId = id;
-  absenNama.value = nama;
-  absenStatus.value = status;
+  document.getElementById('absenNama').value = nama;
+  document.getElementById('absenStatus').value = status;
   document.getElementById("btnSimpanAbsensi").innerText = "Update Absensi";
 }
 function simpanAbsensi(){
+  const tanggalInput = document.getElementById('tanggalInput');
+  const absenNama = document.getElementById('absenNama');
+  const absenStatus = document.getElementById('absenStatus');
+  
   if(absensiEditId) {
     db.collection("absensi").doc(absensiEditId).update({
       nama: absenNama.value,
@@ -493,15 +497,23 @@ function hapusPemanen(id) {
 let pemanenEditId = null;
 function editPemanen(id, nama, blok, jumlah, jenis, keterangan, status) {
   pemanenEditId = id;
-  namaPemanen.value = nama;
-  blokPemanen.value = blok;
-  jumlahPemanen.value = jumlah;
-  jenisPemanen.value = jenis;
-  keteranganPemanen.value = keterangan;
-  statusPemanen.value = status;
+  document.getElementById('namaPemanen').value = nama;
+  document.getElementById('blokPemanen').value = blok;
+  document.getElementById('jumlahPemanen').value = jumlah;
+  document.getElementById('jenisPemanen').value = jenis;
+  document.getElementById('keteranganPemanen').value = keterangan;
+  document.getElementById('statusPemanen').value = status;
   document.getElementById("btnSimpanPemanen").innerText = "Update Pemanen";
 }
 function simpanPemanen(){
+  const tanggalInput = document.getElementById('tanggalInput');
+  const namaPemanen = document.getElementById('namaPemanen');
+  const blokPemanen = document.getElementById('blokPemanen');
+  const jumlahPemanen = document.getElementById('jumlahPemanen');
+  const jenisPemanen = document.getElementById('jenisPemanen');
+  const keteranganPemanen = document.getElementById('keteranganPemanen');
+  const statusPemanen = document.getElementById('statusPemanen');
+  
   if(pemanenEditId) {
     db.collection("pemanen").doc(pemanenEditId).update({
       nama: namaPemanen.value,
@@ -599,26 +611,6 @@ function renderKerjaAdmin() {
     });
   });
 }
-  ["semprot","tebas"].forEach(jenis => {
-    db.collection(jenis).orderBy("tanggal","desc").limit(20).get().then(snap => {
-      snap.forEach(doc => {
-        const d = doc.data();
-        tbody.innerHTML += `<tr>
-          <td>${jenis.charAt(0).toUpperCase()+jenis.slice(1)}</td>
-          <td>${d.blok}</td>
-          <td>${d.anggota}</td>
-          <td>${d.nama ? d.nama : "-"}</td>
-          <td>${d.status}</td>
-          <td>${d.foto ? `<a href='${d.foto}' target='_blank'>Lihat</a>` : "-"}</td>
-          <td>
-            <button style='background:#ff9800;margin-right:4px;' onclick="editKerja(${JSON.stringify(doc.id)},${JSON.stringify(jenis)},${JSON.stringify(d.blok)},${JSON.stringify(d.anggota)},${JSON.stringify(d.nama ? d.nama : '')},${JSON.stringify(d.status)})">Edit</button>
-            <button style='background:#c62828;' onclick="hapusKerja('${doc.id}','${jenis}')">Hapus</button>
-          </td>
-        </tr>`;
-      });
-    });
-  });
-}
 function hapusKerja(id, jenis) {
   if(confirm('Yakin hapus data ini?')) {
     db.collection(jenis).doc(id).delete().then(renderKerjaAdmin);
@@ -629,14 +621,23 @@ let kerjaEditJenis = null;
 function editKerja(id, jenis, blok, anggota, nama, status) {
   kerjaEditId = id;
   kerjaEditJenis = jenis;
-  jenisKerja.value = jenis;
-  blokKerja.value = blok;
-  anggotaKerja.value = anggota;
-  namaTunggal.value = nama;
-  statusKerja.value = status;
+  document.getElementById('jenisKerja').value = jenis;
+  document.getElementById('blokKerja').value = blok;
+  document.getElementById('anggotaKerja').value = anggota;
+  document.getElementById('namaTunggal').value = nama;
+  document.getElementById('statusKerja').value = status;
   document.getElementById("btnSimpanKerja").innerText = "Update Kerja";
+  cekAnggota();
 }
 async function simpanKerja(){
+  const tanggalInput = document.getElementById('tanggalInput');
+  const jenisKerja = document.getElementById('jenisKerja');
+  const blokKerja = document.getElementById('blokKerja');
+  const anggotaKerja = document.getElementById('anggotaKerja');
+  const namaTunggal = document.getElementById('namaTunggal');
+  const statusKerja = document.getElementById('statusKerja');
+  const fotoKerja = document.getElementById('fotoKerja');
+  
   const jumlah = Number(anggotaKerja.value);
   let fotoURL = "";
   if(fotoKerja.files[0]){
@@ -661,6 +662,7 @@ async function simpanKerja(){
       anggotaKerja.value = "";
       namaTunggal.value = "";
       statusKerja.value = "Selesai";
+      fotoKerja.value = "";
       document.getElementById("btnSimpanKerja").innerText = "Simpan Semprot / Tebas";
       renderKerjaAdmin();
     });
@@ -678,6 +680,7 @@ async function simpanKerja(){
       anggotaKerja.value = "";
       namaTunggal.value = "";
       statusKerja.value = "Selesai";
+      fotoKerja.value = "";
       renderKerjaAdmin();
     });
   }
