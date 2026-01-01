@@ -12,7 +12,7 @@ body{font-family:Segoe UI,Arial,sans-serif;background:#f1f5f9;margin:0;color:#33
 h2{text-align:center;margin:20px 0 4px}
 .subtitle{text-align:center;color:#666;margin-bottom:16px}
 .container{max-width:1000px;margin:auto;padding:12px}
-.card{background:#fff;padding:16px;border-radius:12px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,.07)}
+.card{background:#fff;padding:16px;border-radius:14px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,.07)}
 .filter{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
 .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
 .summary .box{background:#e8f5e9;border-radius:12px;padding:14px;text-align:center}
@@ -23,22 +23,23 @@ table{width:100%;border-collapse:collapse}
 th,td{padding:10px;border-bottom:1px solid #eee;text-align:center}
 th{background:#1b5e20;color:#fff}
 .badge{padding:4px 10px;border-radius:12px;font-size:13px;font-weight:bold}
-.selesai{background:#c8e6c9;color:#1b5e20}
-.belum{background:#ffcdd2;color:#b71c1c}
 .hadir{background:#bbdefb;color:#0d47a1}
 .tidak{background:#ffcdd2;color:#b71c1c}
+.selesai{background:#c8e6c9;color:#1b5e20}
 @media(max-width:700px){
   table{display:block;overflow-x:auto;white-space:nowrap}
 }
+footer{text-align:center;padding:14px;color:#666;font-size:13px}
 </style>
 </head>
 
 <body>
 <h2>📊 Dashboard Laporan Sawit</h2>
 <div class="subtitle">Rekap Harian Kebun</div>
+
 <div class="container">
 
-<!-- FILTER -->
+<!-- FILTER TANGGAL -->
 <div class="card">
   <div class="filter">
     <b>Tanggal:</b>
@@ -69,13 +70,9 @@ th{background:#1b5e20;color:#fff}
 <div class="card">
   <div class="section-title">PEMANEN</div>
   <table>
-    <thead>
-      <tr><th>NAMA</th><th>BLOK</th><th>JANJANG</th><th>STATUS</th></tr>
-    </thead>
+    <thead><tr><th>NAMA</th><th>BLOK</th><th>JANJANG</th><th>STATUS</th></tr></thead>
     <tbody id="tabelPemanen"></tbody>
-    <tfoot>
-      <tr><td colspan="2">TOTAL</td><td id="totalJanjang">0</td><td></td></tr>
-    </tfoot>
+    <tfoot><tr><td colspan="2">TOTAL</td><td id="totalJanjang">0</td><td></td></tr></tfoot>
   </table>
 </div>
 
@@ -100,6 +97,8 @@ th{background:#1b5e20;color:#fff}
 
 </div>
 
+<footer>© 2026 Dashboard Mandor Sawit</footer>
+
 <script>
 /* FIREBASE */
 firebase.initializeApp({
@@ -123,11 +122,9 @@ async function loadRingkasan(){
     if(d.jenis!=="Janjang")return;
     const t=new Date(d.tanggal);
     const diff=(now-t)/86400000;
-
     if(diff<1) h+=d.jumlah;
     if(diff<7) s7+=d.jumlah;
     if(t.getMonth()===now.getMonth()&&t.getFullYear()===now.getFullYear()) bln+=d.jumlah;
-
     const lm=new Date(now.getFullYear(),now.getMonth()-1,1);
     if(t.getMonth()===lm.getMonth()&&t.getFullYear()===lm.getFullYear()) lalu+=d.jumlah;
   });
@@ -138,15 +135,73 @@ async function loadRingkasan(){
   sumLalu.innerText=lalu+" Tandan";
 }
 
-/* LOAD DATA HARIAN */
-async function loadAll(){
-  const t=tanggal.value;
-  loadRingkasan();
-  // fungsi loadAbsensi, loadPemanen, loadBrondol, loadKerja
+/* ABSENSI */
+async function loadAbsensi(t){
+  tabelAbsensi.innerHTML="";
+  const snap=await db.collection("absensi").get();
+  snap.forEach(d=>{
+    const v=d.data();
+    if(v.tanggal!==t)return;
+    tabelAbsensi.innerHTML+=`<tr><td>${v.nama}</td><td><span class="badge ${v.status==='Hadir'?'hadir':'tidak'}">${v.status}</span></td></tr>`;
+  });
 }
 
+/* PEMANEN */
+async function loadPemanen(t){
+  tabelPemanen.innerHTML="";
+  let total=0;
+  const snap=await db.collection("pemanen").get();
+  snap.forEach(d=>{
+    const v=d.data();
+    if(v.tanggal!==t)return;
+    if(v.jenis!=="Janjang")return;
+    total+=v.jumlah;
+    tabelPemanen.innerHTML+=`<tr><td>${v.nama}</td><td>${v.blok}</td><td>${v.jumlah}</td><td><span class="badge selesai">Selesai</span></td></tr>`;
+  });
+  totalJanjang.innerText=total;
+}
+
+/* BRONDOL */
+async function loadBrondol(t){
+  tabelBrondol.innerHTML="";
+  let total=0;
+  const snap=await db.collection("pemanen").get();
+  snap.forEach(d=>{
+    const v=d.data();
+    if(v.tanggal!==t)return;
+    if(v.jenis!=="Brondol")return;
+    total+=v.jumlah;
+    tabelBrondol.innerHTML+=`<tr><td>${v.nama}</td><td>${v.jumlah}</td><td>${v.keterangan||""}</td></tr>`;
+  });
+  totalKarung.innerText=total;
+}
+
+/* SEMPROT & TEBAS */
+async function loadKerja(t){
+  tabelKerja.innerHTML="";
+  const snap=await db.collection("kerja").get();
+  snap.forEach(d=>{
+    const v=d.data();
+    if(v.tanggal!==t)return;
+    tabelKerja.innerHTML+=`<tr><td>${v.jenis}</td><td>${v.blok}</td><td>${v.anggota}</td><td><span class="badge selesai">Selesai</span></td></tr>`;
+  });
+}
+
+/* LOAD SEMUA */
+function loadAll(){
+  const t=tanggal.value;
+  loadRingkasan();
+  loadAbsensi(t);
+  loadPemanen(t);
+  loadBrondol(t);
+  loadKerja(t);
+}
+
+/* INIT */
 tanggal.value=today();
-loadRingkasan();
+tanggal.addEventListener("change",loadAll);
+loadAll();
 </script>
+
 </body>
 </html>
