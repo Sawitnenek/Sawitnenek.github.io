@@ -4,105 +4,178 @@
 <meta charset="UTF-8">
 <title>Dashboard Laporan Sawit</title>
 
-<!-- Tailwind -->
-<script src="https://cdn.tailwindcss.com"></script>
-
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-<!-- Export -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<style>
+/* RESET */
+*{box-sizing:border-box}
+body{
+  font-family:'Segoe UI',system-ui,Arial,sans-serif;
+  background:linear-gradient(180deg,#f1f5f9,#e6edf5);
+  margin:0;color:#1f2937
+}
+h2{text-align:center;margin:22px 0 4px;font-weight:700}
+.subtitle{text-align:center;color:#6b7280;margin-bottom:18px}
+.container{max-width:1100px;margin:auto;padding:14px}
+
+/* CARD */
+.card{
+  background:#fff;
+  padding:18px;
+  border-radius:18px;
+  margin-bottom:18px;
+  box-shadow:0 10px 25px rgba(0,0,0,.07)
+}
+
+/* FILTER */
+.filter{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.filter input{
+  padding:8px 12px;border-radius:10px;border:1px solid #d1d5db
+}
+
+/* RINGKASAN */
+.summary{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+  gap:14px
+}
+.summary .box{
+  background:linear-gradient(135deg,#dcfce7,#ecfeff);
+  border-radius:16px;
+  padding:16px;
+  text-align:center;
+  border:1px solid #bbf7d0
+}
+.summary .box h4{margin:0;font-size:.85rem;color:#166534}
+.summary .box b{display:block;margin-top:6px;font-size:1.5rem;color:#064e3b}
+
+/* SECTION */
+.section-title{font-weight:700;margin-bottom:10px;color:#14532d}
+
+/* TABLE */
+table{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+  border-radius:14px;
+  overflow:hidden;
+  font-size:.92rem
+}
+thead th{
+  background:linear-gradient(135deg,#14532d,#166534);
+  color:#fff;
+  padding:12px;
+  font-size:.75rem;
+  letter-spacing:.6px;
+  text-align:center
+}
+tbody td{
+  padding:11px;
+  border-bottom:1px solid #e5e7eb;
+  text-align:center;
+  vertical-align:middle
+}
+tbody tr:nth-child(even){background:#f9fafb}
+tbody tr:hover{background:#ecfeff}
+
+/* TOTAL ROW */
+tfoot tr{
+  background:#f0fdf4;
+}
+tfoot td{
+  padding:12px 10px;
+  font-weight:700;
+  text-align:center;
+  vertical-align:middle;
+  border-top:2px solid #bbf7d0;
+  color:#14532d;
+}
+.total-number{
+  font-size:1rem;
+  letter-spacing:.6px;
+}
+
+/* BADGE */
+.badge{
+  padding:5px 12px;
+  border-radius:999px;
+  font-size:.7rem;
+  font-weight:700
+}
+.hadir{background:#dbeafe;color:#1e40af}
+.tidak{background:#fee2e2;color:#991b1b}
+.selesai{background:#dcfce7;color:#14532d}
+.belum{background:#fee2e2;color:#991b1b}
+
+footer{text-align:center;padding:16px;color:#6b7280;font-size:.8rem}
+
+@media(max-width:700px){
+  table{display:block;overflow-x:auto;white-space:nowrap}
+  h2{font-size:1.25rem}
+}
+</style>
 </head>
 
-<body class="bg-slate-100 text-slate-800">
+<body>
+<h2>📊 Dashboard Laporan Sawit</h2>
+<div class="subtitle">Rekap Harian Kebun</div>
 
-<header class="text-center py-6">
-  <h1 class="text-2xl font-bold">📊 Dashboard Laporan Sawit</h1>
-  <p class="text-slate-500 text-sm">Rekap & Monitoring Panen</p>
-</header>
-
-<div class="max-w-6xl mx-auto px-4 pb-10" id="areaExport">
+<div class="container">
 
 <!-- FILTER -->
-<div class="bg-white rounded-2xl shadow p-4 mb-6 flex justify-center gap-3">
-  <span class="font-semibold">Tanggal</span>
-  <input type="date" id="tanggal"
-    class="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500">
+<div class="card">
+  <div class="filter">
+    <b>Tanggal:</b>
+    <input type="date" id="tanggal">
+  </div>
 </div>
 
 <!-- RINGKASAN -->
-<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-  <div class="bg-green-50 rounded-2xl p-4 text-center">
-    <p class="text-sm text-green-700">🌴 Hari Ini</p>
-    <b id="sumHari" class="text-2xl">0</b>
-  </div>
-  <div class="bg-blue-50 rounded-2xl p-4 text-center">
-    <p class="text-sm text-blue-700">📊 7 Hari</p>
-    <b id="sum7" class="text-2xl">0</b>
-  </div>
-  <div class="bg-emerald-50 rounded-2xl p-4 text-center">
-    <p class="text-sm text-emerald-700">📈 Bulan Ini</p>
-    <b id="sumBulan" class="text-2xl">0</b>
-  </div>
-  <div class="bg-rose-50 rounded-2xl p-4 text-center">
-    <p class="text-sm text-rose-700">📉 Bulan Lalu</p>
-    <b id="sumLalu" class="text-2xl">0</b>
+<div class="card">
+  <div class="summary">
+    <div class="box"><h4>🌴 Hari Ini</h4><b id="sumHari">0</b></div>
+    <div class="box"><h4>📊 7 Hari Terakhir</h4><b id="sum7">0</b></div>
+    <div class="box"><h4>📈 Bulan Ini</h4><b id="sumBulan">0</b></div>
+    <div class="box"><h4>📉 Bulan Lalu</h4><b id="sumLalu">0</b></div>
   </div>
 </div>
 
 <!-- ABSENSI -->
-<div class="bg-white rounded-2xl shadow p-4 mb-6">
-  <h2 class="font-bold mb-3">ABSENSI</h2>
-  <div class="overflow-x-auto">
-    <table class="min-w-full text-sm">
-      <thead class="bg-slate-100">
-        <tr><th class="p-3 text-left">Nama</th><th class="p-3 text-center">Status</th></tr>
-      </thead>
-      <tbody id="tabelAbsensi" class="divide-y"></tbody>
-    </table>
-  </div>
+<div class="card">
+  <div class="section-title">ABSENSI ANGGOTA</div>
+  <table>
+    <thead><tr><th>NAMA</th><th>STATUS</th></tr></thead>
+    <tbody id="tabelAbsensi"></tbody>
+  </table>
 </div>
 
 <!-- PEMANEN -->
-<div class="bg-white rounded-2xl shadow p-4 mb-6">
-  <h2 class="font-bold mb-3">PEMANEN</h2>
-  <div class="overflow-x-auto">
-    <table class="min-w-full text-sm">
-      <thead class="bg-slate-100">
-        <tr>
-          <th class="p-3 text-left">Nama</th>
-          <th class="p-3 text-center">Blok</th>
-          <th class="p-3 text-center">Janjang</th>
-          <th class="p-3 text-center">Status</th>
-        </tr>
-      </thead>
-      <tbody id="tabelPemanen" class="divide-y"></tbody>
-      <tfoot>
-        <tr class="bg-green-50 font-bold">
-          <td colspan="2" class="p-3 text-right">TOTAL</td>
-          <td id="totalJanjang" class="p-3 text-center text-lg">0</td>
-          <td></td>
-        </tr>
-      </tfoot>
-    </table>
-  </div>
+<div class="card">
+  <div class="section-title">PEMANEN</div>
+  <table>
+    <thead><tr><th>NAMA</th><th>BLOK</th><th>JANJANG</th><th>STATUS</th></tr></thead>
+    <tbody id="tabelPemanen"></tbody>
+    <tfoot>
+      <tr>
+        <td colspan="2">TOTAL</td>
+        <td id="totalJanjang" class="total-number">0</td>
+        <td></td>
+      </tr>
+    </tfoot>
+  </table>
 </div>
 
 <!-- BRONDOL -->
-<div class="bg-white rounded-2xl shadow p-4 mb-6">
-  <h2 class="font-bold mb-3">KARUNG BRONDOL</h2>
-  <table class="min-w-full text-sm">
-    <thead class="bg-slate-100">
-      <tr><th class="p-3 text-left">Nama</th><th class="p-3 text-center">Jumlah</th><th class="p-3">Keterangan</th></tr>
-    </thead>
-    <tbody id="tabelBrondol" class="divide-y"></tbody>
+<div class="card">
+  <div class="section-title">KARUNG BRONDOL</div>
+  <table>
+    <thead><tr><th>NAMA</th><th>JUMLAH</th><th>KETERANGAN</th></tr></thead>
+    <tbody id="tabelBrondol"></tbody>
     <tfoot>
-      <tr class="bg-green-50 font-bold">
-        <td class="p-3 text-right">TOTAL</td>
-        <td id="totalKarung" class="p-3 text-center text-lg">0</td>
+      <tr>
+        <td>TOTAL</td>
+        <td id="totalKarung" class="total-number">0</td>
         <td></td>
       </tr>
     </tfoot>
@@ -110,37 +183,17 @@
 </div>
 
 <!-- KERJA -->
-<div class="bg-white rounded-2xl shadow p-4 mb-6">
-  <h2 class="font-bold mb-3">SEMPROT & TEBAS</h2>
-  <table class="min-w-full text-sm">
-    <thead class="bg-slate-100">
-      <tr><th class="p-3">Jenis</th><th class="p-3">Blok</th><th class="p-3">Anggota</th><th class="p-3">Status</th></tr>
-    </thead>
-    <tbody id="tabelKerja" class="divide-y"></tbody>
+<div class="card">
+  <div class="section-title">SEMPROT & TEBAS</div>
+  <table>
+    <thead><tr><th>JENIS</th><th>BLOK</th><th>ANGGOTA</th><th>STATUS</th></tr></thead>
+    <tbody id="tabelKerja"></tbody>
   </table>
 </div>
 
-<!-- EXPORT + PROGRESS -->
-<div class="grid md:grid-cols-2 gap-4">
-  <div class="bg-white rounded-2xl shadow p-4 flex gap-3">
-    <button onclick="exportPDF()" class="bg-green-600 text-white px-4 py-2 rounded-xl">📥 PDF</button>
-    <button onclick="exportExcel()" class="bg-slate-700 text-white px-4 py-2 rounded-xl">📊 Excel</button>
-  </div>
-
-  <div class="bg-white rounded-2xl shadow p-4">
-    <h2 class="font-bold mb-2">📈 Progres Panen Hari Ini</h2>
-    <div class="w-full bg-slate-200 rounded-full h-4 overflow-hidden">
-      <div id="progressFill" class="bg-green-500 h-full"></div>
-    </div>
-    <p id="progressText" class="text-center font-bold mt-2">0%</p>
-  </div>
 </div>
 
-</div>
-
-<footer class="text-center text-xs text-slate-500 py-6">
-© 2026 Dashboard Mandor Sawit
-</footer>
+<footer>© 2026 Dashboard Mandor Sawit</footer>
 
 <script>
 firebase.initializeApp({
@@ -151,20 +204,11 @@ firebase.initializeApp({
 const db=firebase.firestore();
 const today=()=>new Date().toISOString().slice(0,10);
 
-function badge(txt){
-  const map={
-    Hadir:"bg-blue-100 text-blue-700",
-    Tidak:"bg-red-100 text-red-700",
-    Selesai:"bg-green-100 text-green-700",
-    Belum:"bg-red-100 text-red-700"
-  };
-  return `<span class="px-3 py-1 rounded-full text-xs font-bold ${map[txt]||""}">${txt}</span>`;
-}
-
+/* RINGKASAN */
 async function loadRingkasan(){
   const snap=await db.collection("pemanen").get();
   const now=new Date();
-  let h=0,s7=0,b=0,l=0;
+  let h=0,s7=0,bln=0,lalu=0;
   snap.forEach(d=>{
     const v=d.data();
     if(v.jenis!=="Janjang")return;
@@ -172,78 +216,80 @@ async function loadRingkasan(){
     const diff=(now-t)/86400000;
     if(diff<1)h+=v.jumlah;
     if(diff<7)s7+=v.jumlah;
-    if(t.getMonth()===now.getMonth())b+=v.jumlah;
+    if(t.getMonth()===now.getMonth()&&t.getFullYear()===now.getFullYear())bln+=v.jumlah;
     const lm=new Date(now.getFullYear(),now.getMonth()-1,1);
-    if(t.getMonth()===lm.getMonth())l+=v.jumlah;
+    if(t.getMonth()===lm.getMonth()&&t.getFullYear()===lm.getFullYear())lalu+=v.jumlah;
   });
-  sumHari.innerText=h;
-  sum7.innerText=s7;
-  sumBulan.innerText=b;
-  sumLalu.innerText=l;
+  sumHari.innerText=h+" Tandan";
+  sum7.innerText=s7+" Tandan";
+  sumBulan.innerText=bln+" Tandan";
+  sumLalu.innerText=lalu+" Tandan";
 }
 
+/* ABSENSI */
 async function loadAbsensi(t){
   tabelAbsensi.innerHTML="";
   (await db.collection("absensi").get()).forEach(d=>{
-    const v=d.data();
-    if(v.tanggal!==t)return;
-    tabelAbsensi.innerHTML+=`<tr><td class="p-3">${v.nama}</td><td class="p-3 text-center">${badge(v.status)}</td></tr>`;
+    const v=d.data(); if(v.tanggal!==t)return;
+    tabelAbsensi.innerHTML+=`
+      <tr>
+        <td>${v.nama}</td>
+        <td><span class="badge ${v.status==="Hadir"?"hadir":"tidak"}">${v.status}</span></td>
+      </tr>`;
   });
 }
 
+/* PEMANEN */
 async function loadPemanen(t){
-  tabelPemanen.innerHTML="";let total=0;
+  tabelPemanen.innerHTML="";
+  let total=0;
   (await db.collection("pemanen").get()).forEach(d=>{
     const v=d.data();
     if(v.tanggal!==t||v.jenis!=="Janjang")return;
     total+=v.jumlah;
-    tabelPemanen.innerHTML+=
-      `<tr>
-        <td class="p-3">${v.nama}</td>
-        <td class="p-3 text-center">${v.blok}</td>
-        <td class="p-3 text-center">${v.jumlah}</td>
-        <td class="p-3 text-center">${badge(v.status||"Belum")}</td>
+    const status=v.status||"Belum";
+    const cls=status==="Selesai"?"selesai":"belum";
+    tabelPemanen.innerHTML+=`
+      <tr>
+        <td>${v.nama}</td>
+        <td>${v.blok}</td>
+        <td>${v.jumlah}</td>
+        <td><span class="badge ${cls}">${status}</span></td>
       </tr>`;
   });
   totalJanjang.innerText=total;
 }
 
+/* BRONDOL */
 async function loadBrondol(t){
-  tabelBrondol.innerHTML="";let total=0;
+  tabelBrondol.innerHTML="";
+  let total=0;
   (await db.collection("pemanen").get()).forEach(d=>{
     const v=d.data();
     if(v.tanggal!==t||v.jenis!=="Brondol")return;
     total+=v.jumlah;
-    tabelBrondol.innerHTML+=
-      `<tr><td class="p-3">${v.nama}</td><td class="p-3 text-center">${v.jumlah}</td><td class="p-3">${v.keterangan||""}</td></tr>`;
+    tabelBrondol.innerHTML+=`
+      <tr><td>${v.nama}</td><td>${v.jumlah}</td><td>${v.keterangan||""}</td></tr>`;
   });
   totalKarung.innerText=total;
 }
 
+/* KERJA */
 async function loadKerja(t){
   tabelKerja.innerHTML="";
   (await db.collection("kerja").get()).forEach(d=>{
-    const v=d.data();
-    if(v.tanggal!==t)return;
-    tabelKerja.innerHTML+=
-      `<tr><td class="p-3">${v.jenis}</td><td class="p-3">${v.blok}</td><td class="p-3">${v.anggota}</td><td class="p-3 text-center">${badge("Selesai")}</td></tr>`;
+    const v=d.data(); if(v.tanggal!==t)return;
+    tabelKerja.innerHTML+=`
+      <tr>
+        <td>${v.jenis}</td>
+        <td>${v.blok}</td>
+        <td>${v.anggota}</td>
+        <td><span class="badge selesai">Selesai</span></td>
+      </tr>`;
   });
 }
 
-async function loadProgress(){
-  const snap=await db.collection("pemanen").get();
-  let s=0,t=0;
-  snap.forEach(d=>{
-    const v=d.data();
-    if(v.tanggal!==today()||v.jenis!=="Janjang")return;
-    t+=v.jumlah;
-    if(v.status==="Selesai")s+=v.jumlah;
-  });
-  const p=t?Math.round((s/t)*100):0;
-  progressFill.style.width=p+"%";
-  progressText.innerText=p+"% ("+s+"/"+t+" Tandan)";
-}
-
+/* LOAD */
 function loadAll(){
   const t=tanggal.value;
   loadRingkasan();
@@ -251,26 +297,11 @@ function loadAll(){
   loadPemanen(t);
   loadBrondol(t);
   loadKerja(t);
-  loadProgress();
 }
 
 tanggal.value=today();
 tanggal.addEventListener("change",loadAll);
 loadAll();
-
-/* EXPORT */
-async function exportPDF(){
-  const { jsPDF }=window.jspdf;
-  const pdf=new jsPDF("p","mm","a4");
-  const canvas=await html2canvas(areaExport,{scale:2});
-  pdf.addImage(canvas.toDataURL("image/png"),"PNG",10,10,190,0);
-  pdf.save("laporan-sawit.pdf");
-}
-function exportExcel(){
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet([{Info:"Dashboard Sawit"}]),"Laporan");
-  XLSX.writeFile(wb,"laporan-sawit.xlsx");
-}
 </script>
 
 </body>
