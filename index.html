@@ -3,64 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <title>Dashboard Laporan Sawit</title>
+
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<style>
-body{font-family:Segoe UI,Arial,sans-serif;background:#f1f5f9;margin:0;color:#333}
-h2{text-align:center;margin:20px 0 4px}
-.subtitle{text-align:center;color:#666;margin-bottom:16px}
-.container{max-width:1000px;margin:auto;padding:12px}
-.card{background:#fff;padding:16px;border-radius:12px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,.07)}
-.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-.summary .box{background:#e8f5e9;border-radius:12px;padding:16px;text-align:center}
-.summary .box h4{margin:0;font-size:1rem;color:#1b5e20}
-.summary .box b{font-size:1.6rem}
-.section-title{font-weight:bold;margin-bottom:8px}
-</style>
-</head>
-
-<!-- RINGKASAN BUAH KELUAR -->
-<div class="card">
-  <div class="summary">
-    <div class="box"><h4>🌴 Hari Ini</h4><b id="sumHari">0</b></div>
-    <div class="box"><h4>📊 7 Hari</h4><b id="sum7">0</b></div>
-    <div class="box"><h4>📈 Bulan Ini</h4><b id="sumBulan">0</b></div>
-    <div class="box"><h4>📉 Bulan Lalu</h4><b id="sumLalu">0</b></div>
-  </div>
-</div>
-
-</div>
-<script>
-const firebaseConfig={apiKey:"AIzaSyCazwLdErOX7aYw3qh8VSyOsdV5i13S3nQ",authDomain:"tools-mandor-sawit.firebaseapp.com",projectId:"tools-mandor-sawit"};
-firebase.initializeApp(firebaseConfig);
-const db=firebase.firestore();
-
-function ymd(d){return d.toISOString().slice(0,10)}
-
-async function loadRingkasan(){
-  const snap=await db.collection("pemanen").get();
-  const today=new Date();
-  let h=0,s7=0,bln=0,lalu=0;
-  snap.forEach(doc=>{
-    const d=doc.data();
-    if(d.jenis!=="Janjang")return;
-    const t=new Date(d.tanggal);
-    const diff=(today-t)/86400000;
-    if(diff<1)h+=d.jumlah;
-    if(diff<7)s7+=d.jumlah;
-    if(t.getMonth()===today.getMonth()&&t.getFullYear()===today.getFullYear())bln+=d.jumlah;
-    const lm=new Date(today.getFullYear(),today.getMonth()-1,1);
-    if(t.getMonth()===lm.getMonth()&&t.getFullYear()===lm.getFullYear())lalu+=d.jumlah;
-  });
-  sumHari.innerText=h+" Tandan";
-  sum7.innerText=s7+" Tandan";
-  sumBulan.innerText=bln+" Tandan";
-  sumLalu.innerText=lalu+" Tandan";
-}
-loadRingkasan();
-</script>
-</body>
-</html>
 
 <style>
 body {
