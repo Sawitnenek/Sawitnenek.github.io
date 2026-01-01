@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Dashboard Laporan Sawit</title>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -642,7 +645,14 @@ firebase.initializeApp({
   projectId:"tools-mandor-sawit"
 });
 const db=firebase.firestore();
-const today=()=>new Date().toISOString().slice(0,10);
+const today=()=>{
+  const now=new Date();
+  const year=now.getFullYear();
+  const month=String(now.getMonth()+1).padStart(2,'0');
+  const day=String(now.getDate()).padStart(2,'0');
+  console.log('Today date:',`${year}-${month}-${day}`);
+  return `${year}-${month}-${day}`;
+};
 
 /* === UTILITY FUNCTIONS === */
 let chartInstance=null;
@@ -654,7 +664,9 @@ function updateDateDisplay(dateStr){
   const bulan=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][d.getMonth()];
   const tgl=d.getDate();
   const tahun=d.getFullYear();
-  dateDisplay.innerText=`📅 ${hari}, ${tgl} ${bulan} ${tahun}`;
+  const displayText=`📅 ${hari}, ${tgl} ${bulan} ${tahun}`;
+  console.log('Display date:',displayText);
+  dateDisplay.innerText=displayText;
 }
 
 function showLoading(){loading.style.display='block';overlay.style.display='block'}
