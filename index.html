@@ -8,28 +8,108 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <style>
-body{font-family:Segoe UI,Arial,sans-serif;background:#f1f5f9;margin:0;color:#333}
-h2{text-align:center;margin:20px 0 4px}
-.subtitle{text-align:center;color:#666;margin-bottom:16px}
-.container{max-width:1000px;margin:auto;padding:12px}
-.card{background:#fff;padding:16px;border-radius:14px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,.07)}
-.filter{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
-.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
-.summary .box{background:#e8f5e9;border-radius:12px;padding:14px;text-align:center}
-.summary .box h4{margin:0;font-size:0.95rem;color:#1b5e20}
-.summary .box b{font-size:1.4rem}
-.section-title{font-weight:bold;margin-bottom:8px}
-table{width:100%;border-collapse:collapse}
-th,td{padding:10px;border-bottom:1px solid #eee;text-align:center}
-th{background:#1b5e20;color:#fff}
-.badge{padding:4px 10px;border-radius:12px;font-size:13px;font-weight:bold}
-.hadir{background:#bbdefb;color:#0d47a1}
-.tidak{background:#ffcdd2;color:#b71c1c}
-.selesai{background:#c8e6c9;color:#1b5e20}
+/* RESET */
+*{box-sizing:border-box}
+body{
+  font-family:'Segoe UI',system-ui,Arial,sans-serif;
+  background:linear-gradient(180deg,#f1f5f9,#e6edf5);
+  margin:0;color:#1f2937
+}
+h2{text-align:center;margin:22px 0 4px;font-weight:700}
+.subtitle{text-align:center;color:#6b7280;margin-bottom:18px}
+
+/* LAYOUT */
+.container{max-width:1100px;margin:auto;padding:14px}
+.card{
+  background:#fff;
+  padding:18px;
+  border-radius:18px;
+  margin-bottom:18px;
+  box-shadow:0 10px 25px rgba(0,0,0,.07);
+  transition:.25s
+}
+.card:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(0,0,0,.1)}
+
+/* FILTER */
+.filter{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.filter input{
+  padding:8px 12px;
+  border-radius:10px;
+  border:1px solid #d1d5db
+}
+
+/* RINGKASAN */
+.summary{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+  gap:14px
+}
+.summary .box{
+  background:linear-gradient(135deg,#dcfce7,#ecfeff);
+  border-radius:16px;
+  padding:16px;
+  text-align:center;
+  border:1px solid #bbf7d0
+}
+.summary .box h4{
+  margin:0;font-size:.85rem;color:#166534
+}
+.summary .box b{
+  display:block;margin-top:6px;
+  font-size:1.5rem;color:#064e3b
+}
+
+/* SECTION */
+.section-title{
+  font-weight:700;
+  margin-bottom:10px;
+  color:#14532d
+}
+
+/* TABLE */
+table{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+  border-radius:14px;
+  overflow:hidden;
+  font-size:.92rem
+}
+thead th{
+  background:linear-gradient(135deg,#14532d,#166534);
+  color:#fff;
+  padding:12px;
+  font-size:.75rem;
+  letter-spacing:.6px
+}
+tbody td{
+  padding:11px;border-bottom:1px solid #e5e7eb;
+  text-align:center
+}
+tbody tr:nth-child(even){background:#f9fafb}
+tbody tr:hover{background:#ecfeff}
+tfoot td{
+  padding:12px;font-weight:700;
+  background:#f0fdf4;color:#14532d
+}
+
+/* BADGE */
+.badge{
+  padding:5px 12px;border-radius:999px;
+  font-size:.7rem;font-weight:700
+}
+.hadir{background:#dbeafe;color:#1e40af}
+.tidak{background:#fee2e2;color:#991b1b}
+.selesai{background:#dcfce7;color:#14532d}
+
+/* FOOTER */
+footer{text-align:center;padding:16px;color:#6b7280;font-size:.8rem}
+
+/* MOBILE */
 @media(max-width:700px){
   table{display:block;overflow-x:auto;white-space:nowrap}
+  h2{font-size:1.25rem}
 }
-footer{text-align:center;padding:14px;color:#666;font-size:13px}
 </style>
 </head>
 
@@ -39,7 +119,7 @@ footer{text-align:center;padding:14px;color:#666;font-size:13px}
 
 <div class="container">
 
-<!-- FILTER TANGGAL -->
+<!-- FILTER -->
 <div class="card">
   <div class="filter">
     <b>Tanggal:</b>
@@ -47,7 +127,7 @@ footer{text-align:center;padding:14px;color:#666;font-size:13px}
   </div>
 </div>
 
-<!-- 🔥 RINGKASAN BUAH KELUAR -->
+<!-- RINGKASAN -->
 <div class="card">
   <div class="summary">
     <div class="box"><h4>🌴 Hari Ini</h4><b id="sumHari">0</b></div>
@@ -86,7 +166,7 @@ footer{text-align:center;padding:14px;color:#666;font-size:13px}
   </table>
 </div>
 
-<!-- SEMPROT & TEBAS -->
+<!-- KERJA -->
 <div class="card">
   <div class="section-title">SEMPROT & TEBAS</div>
   <table>
@@ -100,104 +180,73 @@ footer{text-align:center;padding:14px;color:#666;font-size:13px}
 <footer>© 2026 Dashboard Mandor Sawit</footer>
 
 <script>
-/* FIREBASE */
 firebase.initializeApp({
   apiKey:"AIzaSyCazwLdErOX7aYw3qh8VSyOsdV5i13S3nQ",
   authDomain:"tools-mandor-sawit.firebaseapp.com",
   projectId:"tools-mandor-sawit"
 });
 const db=firebase.firestore();
-
-/* UTIL */
 const today=()=>new Date().toISOString().slice(0,10);
 
-/* 🔥 RINGKASAN */
+/* RINGKASAN */
 async function loadRingkasan(){
   const snap=await db.collection("pemanen").get();
   const now=new Date();
   let h=0,s7=0,bln=0,lalu=0;
-
-  snap.forEach(doc=>{
-    const d=doc.data();
-    if(d.jenis!=="Janjang")return;
-    const t=new Date(d.tanggal);
+  snap.forEach(d=>{
+    const v=d.data();
+    if(v.jenis!=="Janjang")return;
+    const t=new Date(v.tanggal);
     const diff=(now-t)/86400000;
-    if(diff<1) h+=d.jumlah;
-    if(diff<7) s7+=d.jumlah;
-    if(t.getMonth()===now.getMonth()&&t.getFullYear()===now.getFullYear()) bln+=d.jumlah;
+    if(diff<1)h+=v.jumlah;
+    if(diff<7)s7+=v.jumlah;
+    if(t.getMonth()===now.getMonth()&&t.getFullYear()===now.getFullYear())bln+=v.jumlah;
     const lm=new Date(now.getFullYear(),now.getMonth()-1,1);
-    if(t.getMonth()===lm.getMonth()&&t.getFullYear()===lm.getFullYear()) lalu+=d.jumlah;
+    if(t.getMonth()===lm.getMonth()&&t.getFullYear()===lm.getFullYear())lalu+=v.jumlah;
   });
-
   sumHari.innerText=h+" Tandan";
   sum7.innerText=s7+" Tandan";
   sumBulan.innerText=bln+" Tandan";
   sumLalu.innerText=lalu+" Tandan";
 }
 
-/* ABSENSI */
+/* LOAD DATA */
 async function loadAbsensi(t){
   tabelAbsensi.innerHTML="";
-  const snap=await db.collection("absensi").get();
-  snap.forEach(d=>{
-    const v=d.data();
-    if(v.tanggal!==t)return;
-    tabelAbsensi.innerHTML+=`<tr><td>${v.nama}</td><td><span class="badge ${v.status==='Hadir'?'hadir':'tidak'}">${v.status}</span></td></tr>`;
+  (await db.collection("absensi").get()).forEach(d=>{
+    const v=d.data(); if(v.tanggal!==t)return;
+    tabelAbsensi.innerHTML+=`<tr><td>${v.nama}</td><td><span class="badge ${v.status==="Hadir"?"hadir":"tidak"}">${v.status}</span></td></tr>`;
   });
 }
-
-/* PEMANEN */
 async function loadPemanen(t){
-  tabelPemanen.innerHTML="";
-  let total=0;
-  const snap=await db.collection("pemanen").get();
-  snap.forEach(d=>{
-    const v=d.data();
-    if(v.tanggal!==t)return;
-    if(v.jenis!=="Janjang")return;
+  tabelPemanen.innerHTML="";let total=0;
+  (await db.collection("pemanen").get()).forEach(d=>{
+    const v=d.data(); if(v.tanggal!==t||v.jenis!=="Janjang")return;
     total+=v.jumlah;
     tabelPemanen.innerHTML+=`<tr><td>${v.nama}</td><td>${v.blok}</td><td>${v.jumlah}</td><td><span class="badge selesai">Selesai</span></td></tr>`;
   });
   totalJanjang.innerText=total;
 }
-
-/* BRONDOL */
 async function loadBrondol(t){
-  tabelBrondol.innerHTML="";
-  let total=0;
-  const snap=await db.collection("pemanen").get();
-  snap.forEach(d=>{
-    const v=d.data();
-    if(v.tanggal!==t)return;
-    if(v.jenis!=="Brondol")return;
+  tabelBrondol.innerHTML="";let total=0;
+  (await db.collection("pemanen").get()).forEach(d=>{
+    const v=d.data(); if(v.tanggal!==t||v.jenis!=="Brondol")return;
     total+=v.jumlah;
     tabelBrondol.innerHTML+=`<tr><td>${v.nama}</td><td>${v.jumlah}</td><td>${v.keterangan||""}</td></tr>`;
   });
   totalKarung.innerText=total;
 }
-
-/* SEMPROT & TEBAS */
 async function loadKerja(t){
   tabelKerja.innerHTML="";
-  const snap=await db.collection("kerja").get();
-  snap.forEach(d=>{
-    const v=d.data();
-    if(v.tanggal!==t)return;
+  (await db.collection("kerja").get()).forEach(d=>{
+    const v=d.data(); if(v.tanggal!==t)return;
     tabelKerja.innerHTML+=`<tr><td>${v.jenis}</td><td>${v.blok}</td><td>${v.anggota}</td><td><span class="badge selesai">Selesai</span></td></tr>`;
   });
 }
-
-/* LOAD SEMUA */
 function loadAll(){
   const t=tanggal.value;
-  loadRingkasan();
-  loadAbsensi(t);
-  loadPemanen(t);
-  loadBrondol(t);
-  loadKerja(t);
+  loadRingkasan();loadAbsensi(t);loadPemanen(t);loadBrondol(t);loadKerja(t);
 }
-
-/* INIT */
 tanggal.value=today();
 tanggal.addEventListener("change",loadAll);
 loadAll();
