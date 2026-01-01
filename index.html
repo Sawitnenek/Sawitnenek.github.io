@@ -8,7 +8,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <style>
-/* RESET */
 *{box-sizing:border-box}
 body{
   font-family:'Segoe UI',system-ui,Arial,sans-serif;
@@ -17,25 +16,20 @@ body{
 }
 h2{text-align:center;margin:22px 0 4px;font-weight:700}
 .subtitle{text-align:center;color:#6b7280;margin-bottom:18px}
-
-/* LAYOUT */
 .container{max-width:1100px;margin:auto;padding:14px}
+
 .card{
   background:#fff;
   padding:18px;
   border-radius:18px;
   margin-bottom:18px;
-  box-shadow:0 10px 25px rgba(0,0,0,.07);
-  transition:.25s
+  box-shadow:0 10px 25px rgba(0,0,0,.07)
 }
-.card:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(0,0,0,.1)}
 
 /* FILTER */
 .filter{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
 .filter input{
-  padding:8px 12px;
-  border-radius:10px;
-  border:1px solid #d1d5db
+  padding:8px 12px;border-radius:10px;border:1px solid #d1d5db
 }
 
 /* RINGKASAN */
@@ -51,20 +45,11 @@ h2{text-align:center;margin:22px 0 4px;font-weight:700}
   text-align:center;
   border:1px solid #bbf7d0
 }
-.summary .box h4{
-  margin:0;font-size:.85rem;color:#166534
-}
-.summary .box b{
-  display:block;margin-top:6px;
-  font-size:1.5rem;color:#064e3b
-}
+.summary .box h4{margin:0;font-size:.85rem;color:#166534}
+.summary .box b{display:block;margin-top:6px;font-size:1.5rem;color:#064e3b}
 
 /* SECTION */
-.section-title{
-  font-weight:700;
-  margin-bottom:10px;
-  color:#14532d
-}
+.section-title{font-weight:700;margin-bottom:10px;color:#14532d}
 
 /* TABLE */
 table{
@@ -93,19 +78,20 @@ tfoot td{
   background:#f0fdf4;color:#14532d
 }
 
-/* BADGE */
+/* BADGE STATUS */
 .badge{
-  padding:5px 12px;border-radius:999px;
-  font-size:.7rem;font-weight:700
+  padding:5px 12px;
+  border-radius:999px;
+  font-size:.7rem;
+  font-weight:700
 }
 .hadir{background:#dbeafe;color:#1e40af}
 .tidak{background:#fee2e2;color:#991b1b}
 .selesai{background:#dcfce7;color:#14532d}
+.belum{background:#fee2e2;color:#991b1b}
 
-/* FOOTER */
 footer{text-align:center;padding:16px;color:#6b7280;font-size:.8rem}
 
-/* MOBILE */
 @media(max-width:700px){
   table{display:block;overflow-x:auto;white-space:nowrap}
   h2{font-size:1.25rem}
@@ -210,43 +196,82 @@ async function loadRingkasan(){
   sumLalu.innerText=lalu+" Tandan";
 }
 
-/* LOAD DATA */
+/* ABSENSI */
 async function loadAbsensi(t){
   tabelAbsensi.innerHTML="";
   (await db.collection("absensi").get()).forEach(d=>{
     const v=d.data(); if(v.tanggal!==t)return;
-    tabelAbsensi.innerHTML+=`<tr><td>${v.nama}</td><td><span class="badge ${v.status==="Hadir"?"hadir":"tidak"}">${v.status}</span></td></tr>`;
+    tabelAbsensi.innerHTML+=`
+      <tr>
+        <td>${v.nama}</td>
+        <td><span class="badge ${v.status==="Hadir"?"hadir":"tidak"}">${v.status}</span></td>
+      </tr>`;
   });
 }
+
+/* PEMANEN - STATUS DARI FIRESTORE */
 async function loadPemanen(t){
-  tabelPemanen.innerHTML="";let total=0;
+  tabelPemanen.innerHTML="";
+  let total=0;
   (await db.collection("pemanen").get()).forEach(d=>{
-    const v=d.data(); if(v.tanggal!==t||v.jenis!=="Janjang")return;
+    const v=d.data();
+    if(v.tanggal!==t || v.jenis!=="Janjang")return;
+
     total+=v.jumlah;
-    tabelPemanen.innerHTML+=`<tr><td>${v.nama}</td><td>${v.blok}</td><td>${v.jumlah}</td><td><span class="badge selesai">Selesai</span></td></tr>`;
+
+    const status=v.status||"Belum";
+    const cls=status==="Selesai"?"selesai":"belum";
+
+    tabelPemanen.innerHTML+=`
+      <tr>
+        <td>${v.nama}</td>
+        <td>${v.blok}</td>
+        <td>${v.jumlah}</td>
+        <td><span class="badge ${cls}">${status}</span></td>
+      </tr>`;
   });
   totalJanjang.innerText=total;
 }
+
+/* BRONDOL */
 async function loadBrondol(t){
-  tabelBrondol.innerHTML="";let total=0;
+  tabelBrondol.innerHTML="";
+  let total=0;
   (await db.collection("pemanen").get()).forEach(d=>{
-    const v=d.data(); if(v.tanggal!==t||v.jenis!=="Brondol")return;
+    const v=d.data();
+    if(v.tanggal!==t||v.jenis!=="Brondol")return;
     total+=v.jumlah;
-    tabelBrondol.innerHTML+=`<tr><td>${v.nama}</td><td>${v.jumlah}</td><td>${v.keterangan||""}</td></tr>`;
+    tabelBrondol.innerHTML+=`
+      <tr><td>${v.nama}</td><td>${v.jumlah}</td><td>${v.keterangan||""}</td></tr>`;
   });
   totalKarung.innerText=total;
 }
+
+/* KERJA */
 async function loadKerja(t){
   tabelKerja.innerHTML="";
   (await db.collection("kerja").get()).forEach(d=>{
     const v=d.data(); if(v.tanggal!==t)return;
-    tabelKerja.innerHTML+=`<tr><td>${v.jenis}</td><td>${v.blok}</td><td>${v.anggota}</td><td><span class="badge selesai">Selesai</span></td></tr>`;
+    tabelKerja.innerHTML+=`
+      <tr>
+        <td>${v.jenis}</td>
+        <td>${v.blok}</td>
+        <td>${v.anggota}</td>
+        <td><span class="badge selesai">Selesai</span></td>
+      </tr>`;
   });
 }
+
+/* LOAD */
 function loadAll(){
   const t=tanggal.value;
-  loadRingkasan();loadAbsensi(t);loadPemanen(t);loadBrondol(t);loadKerja(t);
+  loadRingkasan();
+  loadAbsensi(t);
+  loadPemanen(t);
+  loadBrondol(t);
+  loadKerja(t);
 }
+
 tanggal.value=today();
 tanggal.addEventListener("change",loadAll);
 loadAll();
