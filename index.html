@@ -8,6 +8,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <style>
+/* RESET */
 *{box-sizing:border-box}
 body{
   font-family:'Segoe UI',system-ui,Arial,sans-serif;
@@ -18,6 +19,7 @@ h2{text-align:center;margin:22px 0 4px;font-weight:700}
 .subtitle{text-align:center;color:#6b7280;margin-bottom:18px}
 .container{max-width:1100px;margin:auto;padding:14px}
 
+/* CARD */
 .card{
   background:#fff;
   padding:18px;
@@ -65,20 +67,36 @@ thead th{
   color:#fff;
   padding:12px;
   font-size:.75rem;
-  letter-spacing:.6px
+  letter-spacing:.6px;
+  text-align:center
 }
 tbody td{
-  padding:11px;border-bottom:1px solid #e5e7eb;
-  text-align:center
+  padding:11px;
+  border-bottom:1px solid #e5e7eb;
+  text-align:center;
+  vertical-align:middle
 }
 tbody tr:nth-child(even){background:#f9fafb}
 tbody tr:hover{background:#ecfeff}
+
+/* TOTAL ROW */
+tfoot tr{
+  background:#f0fdf4;
+}
 tfoot td{
-  padding:12px;font-weight:700;
-  background:#f0fdf4;color:#14532d
+  padding:12px 10px;
+  font-weight:700;
+  text-align:center;
+  vertical-align:middle;
+  border-top:2px solid #bbf7d0;
+  color:#14532d;
+}
+.total-number{
+  font-size:1rem;
+  letter-spacing:.6px;
 }
 
-/* BADGE STATUS */
+/* BADGE */
 .badge{
   padding:5px 12px;
   border-radius:999px;
@@ -138,7 +156,13 @@ footer{text-align:center;padding:16px;color:#6b7280;font-size:.8rem}
   <table>
     <thead><tr><th>NAMA</th><th>BLOK</th><th>JANJANG</th><th>STATUS</th></tr></thead>
     <tbody id="tabelPemanen"></tbody>
-    <tfoot><tr><td colspan="2">TOTAL</td><td id="totalJanjang">0</td><td></td></tr></tfoot>
+    <tfoot>
+      <tr>
+        <td colspan="2">TOTAL</td>
+        <td id="totalJanjang" class="total-number">0</td>
+        <td></td>
+      </tr>
+    </tfoot>
   </table>
 </div>
 
@@ -148,7 +172,13 @@ footer{text-align:center;padding:16px;color:#6b7280;font-size:.8rem}
   <table>
     <thead><tr><th>NAMA</th><th>JUMLAH</th><th>KETERANGAN</th></tr></thead>
     <tbody id="tabelBrondol"></tbody>
-    <tfoot><tr><td>TOTAL</td><td id="totalKarung">0</td><td></td></tr></tfoot>
+    <tfoot>
+      <tr>
+        <td>TOTAL</td>
+        <td id="totalKarung" class="total-number">0</td>
+        <td></td>
+      </tr>
+    </tfoot>
   </table>
 </div>
 
@@ -209,19 +239,16 @@ async function loadAbsensi(t){
   });
 }
 
-/* PEMANEN - STATUS DARI FIRESTORE */
+/* PEMANEN */
 async function loadPemanen(t){
   tabelPemanen.innerHTML="";
   let total=0;
   (await db.collection("pemanen").get()).forEach(d=>{
     const v=d.data();
-    if(v.tanggal!==t || v.jenis!=="Janjang")return;
-
+    if(v.tanggal!==t||v.jenis!=="Janjang")return;
     total+=v.jumlah;
-
     const status=v.status||"Belum";
     const cls=status==="Selesai"?"selesai":"belum";
-
     tabelPemanen.innerHTML+=`
       <tr>
         <td>${v.nama}</td>
