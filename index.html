@@ -4,10 +4,11 @@
 <meta charset="UTF-8">
 <title>Dashboard Laporan Sawit</title>
 
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-<!-- EXPORT -->
+<!-- Export -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
@@ -31,23 +32,10 @@ h2{text-align:center;margin:22px 0 4px;font-weight:700}
   box-shadow:0 10px 25px rgba(0,0,0,.07)
 }
 
-/* TANGGAL */
-.filter{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:6px
-}
-.filter input{
-  padding:8px 12px;border-radius:10px;border:1px solid #d1d5db
-}
-.hari{
-  font-weight:700;
-  color:#14532d;
-  font-size:.95rem
-}
+.filter{text-align:center}
+.filter input{padding:8px 12px;border-radius:10px;border:1px solid #d1d5db}
+.hari{font-weight:700;color:#14532d;margin-bottom:6px}
 
-/* RINGKASAN */
 .summary{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
@@ -60,12 +48,11 @@ h2{text-align:center;margin:22px 0 4px;font-weight:700}
   text-align:center;
   border:1px solid #bbf7d0
 }
-.summary .box h4{margin:0;font-size:.85rem;color:#166534}
-.summary .box b{display:block;margin-top:6px;font-size:1.5rem;color:#064e3b}
+.summary h4{margin:0;font-size:.85rem;color:#166534}
+.summary b{display:block;margin-top:6px;font-size:1.5rem;color:#064e3b}
 
 .section-title{font-weight:700;margin-bottom:10px;color:#14532d}
 
-/* TABLE */
 table{
   width:100%;
   border-collapse:separate;
@@ -75,51 +62,51 @@ table{
   font-size:.92rem
 }
 thead th{
-  background:linear-gradient(135deg,#14532d,#166534);
+  background:#14532d;
   color:#fff;
   padding:12px;
   font-size:.75rem;
-  letter-spacing:.6px;
   text-align:center
 }
 tbody td{
-  padding:11px;
+  padding:10px;
   border-bottom:1px solid #e5e7eb;
-  text-align:center;
-  vertical-align:middle
+  text-align:center
 }
 tbody tr:nth-child(even){background:#f9fafb}
-tbody tr:hover{background:#ecfeff}
 
-tfoot tr{background:#f0fdf4}
 tfoot td{
-  padding:12px 10px;
   font-weight:700;
-  text-align:center;
-  border-top:2px solid #bbf7d0;
-  color:#14532d
+  background:#f0fdf4;
+  padding:10px;
+  text-align:center
 }
-.total-number{font-size:1rem;letter-spacing:.6px}
 
-/* BADGE */
 .badge{
   padding:5px 12px;
   border-radius:999px;
   font-size:.7rem;
-  font-weight:700;
-  cursor:pointer
+  font-weight:700
 }
 .hadir{background:#dbeafe;color:#1e40af}
 .tidak{background:#fee2e2;color:#991b1b}
 .selesai{background:#dcfce7;color:#14532d}
 .belum{background:#fee2e2;color:#991b1b}
 
-footer{text-align:center;padding:16px;color:#6b7280;font-size:.8rem}
-
-@media(max-width:700px){
-  table{display:block;overflow-x:auto;white-space:nowrap}
-  h2{font-size:1.25rem}
+.progress{
+  background:#e5e7eb;border-radius:999px;height:14px;overflow:hidden
 }
+.progress-bar{
+  height:100%;background:#22c55e;width:0%
+}
+
+.export span{
+  display:inline-block;
+  margin:4px;
+  cursor:pointer
+}
+
+footer{text-align:center;padding:16px;color:#6b7280;font-size:.8rem}
 </style>
 </head>
 
@@ -129,27 +116,59 @@ footer{text-align:center;padding:16px;color:#6b7280;font-size:.8rem}
 
 <div class="container" id="areaExport">
 
-<!-- FILTER -->
-<div class="card">
-  <div class="filter">
-    <div id="hariTanggal" class="hari">-</div>
-    <input type="date" id="tanggal">
-  </div>
+<div class="card filter">
+  <div id="hariTanggal" class="hari"></div>
+  <input type="date" id="tanggal">
 </div>
 
-<!-- RINGKASAN -->
 <div class="card">
   <div class="summary">
-    <div class="box"><h4>🌴 Hari Ini</h4><b id="sumHari">0</b></div>
-    <div class="box"><h4>📊 7 Hari Terakhir</h4><b id="sum7">0</b></div>
-    <div class="box"><h4>📈 Bulan Ini</h4><b id="sumBulan">0</b></div>
-    <div class="box"><h4>📉 Bulan Lalu</h4><b id="sumLalu">0</b></div>
+    <div class="box"><h4>Hari Ini</h4><b id="sumHari">0</b></div>
+    <div class="box"><h4>7 Hari</h4><b id="sum7">0</b></div>
+    <div class="box"><h4>Bulan Ini</h4><b id="sumBulan">0</b></div>
+    <div class="box"><h4>Bulan Lalu</h4><b id="sumLalu">0</b></div>
   </div>
 </div>
 
-<!-- (SEMUA SECTION TABEL TETAP SAMA – TIDAK DIUBAH) -->
-<!-- ABSENSI, PEMANEN, BRONDOL, KERJA, PROGRESS & EXPORT -->
-<!-- (Script JS di bawah juga tetap, hanya ditambah fungsi hari) -->
+<div class="card">
+  <div class="section-title">ABSENSI</div>
+  <table>
+    <thead><tr><th>Nama</th><th>Status</th></tr></thead>
+    <tbody id="tabelAbsensi"></tbody>
+  </table>
+</div>
+
+<div class="card">
+  <div class="section-title">PEMANEN</div>
+  <table>
+    <thead><tr><th>Nama</th><th>Blok</th><th>Janjang</th><th>Status</th></tr></thead>
+    <tbody id="tabelPemanen"></tbody>
+    <tfoot><tr><td colspan="2">TOTAL</td><td id="totalJanjang">0</td><td></td></tr></tfoot>
+  </table>
+</div>
+
+<div class="card">
+  <div class="section-title">BRONDOL</div>
+  <table>
+    <thead><tr><th>Nama</th><th>Jumlah</th><th>Keterangan</th></tr></thead>
+    <tbody id="tabelBrondol"></tbody>
+    <tfoot><tr><td>TOTAL</td><td id="totalKarung">0</td><td></td></tr></tfoot>
+  </table>
+</div>
+
+<div class="card">
+  <div class="section-title">PROGRES PANEN</div>
+  <div class="progress"><div id="progressBar" class="progress-bar"></div></div>
+  <div id="progressText" style="text-align:center;font-weight:700;margin-top:6px">0%</div>
+
+  <div class="export">
+    <span class="badge selesai" onclick="exportPDF()">PDF</span>
+    <span class="badge hadir" onclick="exportPNG()">PNG</span>
+    <span class="badge tidak" onclick="exportExcel()">Excel</span>
+  </div>
+</div>
+
+</div>
 
 <footer>© 2026 Copyright Irwan</footer>
 
@@ -160,35 +179,76 @@ firebase.initializeApp({
   projectId:"tools-mandor-sawit"
 });
 const db=firebase.firestore();
+const hari=["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
+const bulan=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+
 const today=()=>new Date().toISOString().slice(0,10);
-
-const hariNama=["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
-const bulanNama=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
-
-function updateHari(t){
-  const d=new Date(t);
-  hariTanggal.innerText=
-    hariNama[d.getDay()]+", "+
-    d.getDate()+" "+
-    bulanNama[d.getMonth()]+" "+
-    d.getFullYear();
-}
-
-/* ===== SEMUA SCRIPT ANDA TETAP ===== */
-/* loadRingkasan, loadAbsensi, loadPemanen, loadBrondol, loadKerja, loadProgress, exportPDF, exportPNG, exportExcel */
-
-function loadAll(){
-  const t=tanggal.value;
-  updateHari(t);
-  loadRingkasan();
-  loadAbsensi(t);
-  loadPemanen(t);
-  loadBrondol(t);
-  loadKerja(t);
-  loadProgress(t);
-}
-
 tanggal.value=today();
+
+function setHari(t){
+  const d=new Date(t);
+  hariTanggal.innerText=`${hari[d.getDay()]}, ${d.getDate()} ${bulan[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+async function loadAll(){
+  const t=tanggal.value;
+  setHari(t);
+
+  let totalJ=0,selesai=0;
+
+  tabelAbsensi.innerHTML="";
+  tabelPemanen.innerHTML="";
+  tabelBrondol.innerHTML="";
+
+  (await db.collection("absensi").get()).forEach(d=>{
+    const v=d.data(); if(v.tanggal!==t)return;
+    tabelAbsensi.innerHTML+=`<tr><td>${v.nama}</td><td><span class="badge ${v.status==="Hadir"?"hadir":"tidak"}">${v.status}</span></td></tr>`;
+  });
+
+  (await db.collection("pemanen").get()).forEach(d=>{
+    const v=d.data(); if(v.tanggal!==t)return;
+
+    if(v.jenis==="Janjang"){
+      totalJ+=v.jumlah;
+      if(v.status==="Selesai")selesai++;
+      tabelPemanen.innerHTML+=`<tr><td>${v.nama}</td><td>${v.blok}</td><td>${v.jumlah}</td><td><span class="badge ${v.status==="Selesai"?"selesai":"belum"}">${v.status||"Belum"}</span></td></tr>`;
+    }
+
+    if(v.jenis==="Brondol"){
+      tabelBrondol.innerHTML+=`<tr><td>${v.nama}</td><td>${v.jumlah}</td><td>${v.keterangan||""}</td></tr>`;
+    }
+  });
+
+  totalJanjang.innerText=totalJ;
+  const p=totalJ?Math.round((selesai/totalJ)*100):0;
+  progressBar.style.width=p+"%";
+  progressText.innerText=p+"%";
+}
+
+function exportPDF(){
+  html2canvas(areaExport,{scale:2}).then(c=>{
+    const pdf=new jspdf.jsPDF("p","mm","a4");
+    const w=210,h=c.height*w/c.width;
+    pdf.addImage(c.toDataURL("image/png"),"PNG",0,0,w,h);
+    pdf.save("laporan_sawit.pdf");
+  });
+}
+function exportPNG(){
+  html2canvas(areaExport,{scale:2}).then(c=>{
+    const a=document.createElement("a");
+    a.href=c.toDataURL("image/png");
+    a.download="laporan_sawit.png";
+    a.click();
+  });
+}
+function exportExcel(){
+  const wb=XLSX.utils.book_new();
+  document.querySelectorAll("table").forEach((t,i)=>{
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.table_to_sheet(t),"Sheet"+(i+1));
+  });
+  XLSX.writeFile(wb,"laporan_sawit.xlsx");
+}
+
 tanggal.addEventListener("change",loadAll);
 loadAll();
 </script>
