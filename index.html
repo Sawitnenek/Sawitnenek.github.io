@@ -364,6 +364,31 @@ footer{
 }
 @keyframes rotate{to{transform:rotate(360deg)}}
 .date-display::after{content:'';position:absolute;inset:0;border-radius:16px;padding:2px;background:linear-gradient(135deg,rgba(255,255,255,.5),transparent);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.refresh-btn{
+  display:inline-block;
+  margin-left:12px;
+  padding:8px 16px;
+  background:rgba(255,255,255,.2);
+  border:2px solid rgba(255,255,255,.4);
+  border-radius:8px;
+  color:#fff;
+  cursor:pointer;
+  font-size:.85rem;
+  transition:all .2s;
+  font-weight:600
+}
+.refresh-btn:hover{
+  background:rgba(255,255,255,.3);
+  transform:scale(1.05)
+}
+.refresh-btn:active{transform:scale(.95)}
+.last-update{
+  display:block;
+  font-size:.75rem;
+  opacity:.9;
+  margin-top:8px;
+  font-weight:400
+}
 
 /* EXPORT HIDE */
 .export-hide{transition:opacity .2s}
@@ -516,7 +541,11 @@ button:active{
 <div class="container">
 
 <!-- DATE DISPLAY -->
-<div class="date-display" id="dateDisplay">📅 Memuat...</div>
+<div class="date-display" id="dateDisplay">
+  📅 Memuat...
+  <button class="refresh-btn" id="refreshBtn" onclick="forceRefresh()">🔄 Refresh</button>
+  <span class="last-update" id="lastUpdate"></span>
+</div>
 
 <!-- FILTER -->
 <div class="card export-hide">
@@ -602,7 +631,7 @@ button:active{
 <div class="card">
   <div class="section-title">⚙️ SEMPROT & TEBAS</div>
   <table>
-    <thead><tr><th>JENIS</th><th>BLOK</th><th>ANGGOTA</th><th>STATUS</th></tr></thead>
+    <thead><tr><th>JENIS</th><th>BLOK</th><th>KETERANGAN</th><th>FOTO</th></tr></thead>
     <tbody id="tabelKerja"></tbody>
   </table>
 </div>
@@ -646,12 +675,16 @@ firebase.initializeApp({
 });
 const db=firebase.firestore();
 const today=()=>{
+  // Gunakan timezone Indonesia (WIB) untuk memastikan tanggal yang benar
   const now=new Date();
-  const year=now.getFullYear();
-  const month=String(now.getMonth()+1).padStart(2,'0');
-  const day=String(now.getDate()).padStart(2,'0');
-  console.log('Today date:',`${year}-${month}-${day}`);
-  return `${year}-${month}-${day}`;
+  // Tambahkan offset timezone Indonesia (+7 jam)
+  const jakartaTime=new Date(now.toLocaleString('en-US',{timeZone:'Asia/Jakarta'}));
+  const year=jakartaTime.getFullYear();
+  const month=String(jakartaTime.getMonth()+1).padStart(2,'0');
+  const day=String(jakartaTime.getDate()).padStart(2,'0');
+  const todayStr=`${year}-${month}-${day}`;
+  console.log('Today date (Jakarta):',todayStr,new Date());
+  return todayStr;
 };
 
 /* === UTILITY FUNCTIONS === */
@@ -683,19 +716,81 @@ async function loadRingkasan(){
   const snap=await db.collection("pemanen").get();
   allData.pemanen=[];
   const now=new Date();
+  // Gunakan timezone Indonesia untuk semua perhitungan
+  const jakartaTime=new Date(now.toLocaleString('en-US',{timeZone:'Asia/Jakarta'}));
+  const todayStr=today(); // Format: YYYY-MM-DD
+  
+  // Buat array tanggal untuk 7 hari terakhir menggunakan Jakarta timezone
+  const last7Days=[];
+  console.log('📅 Calculating last 7 days from Jakarta timezone:',jakartaTime.toISOString());
+  for(let i=0;i<7;i++){
+    const d=new Date(jakartaTime);
+    d.setDate(d.getDate()-i);
+    const year=d.getFullYear();
+    const month=String(d.getMonth()+1).padStart(2,'0');
+    const day=String(d.getDate()).padStart(2,'0');
+    const dateStr=`${year}-${month}-${day}`;
+    last7Days.push(dateStr);
+  }
+  console.log('Last 7 days:',last7Days);
+  
+  // Deklarasi variable untuk bulan lalu di luar scope
+  const lastMonth=jakartaTime.getMonth()===0?11:jakartaTime.getMonth()-1;
+  const lastMonthYear=jakartaTime.getMonth()===0?jakartaTime.getFullYear()-1:jakartaTime.getFullYear();
+  
   let h=0,s7=0,bln=0,lalu=0;
   snap.forEach(d=>{
     const v={...d.data(),id:d.id};
     allData.pemanen.push(v);
     if(v.jenis!=="Janjang")return;
-    const t=new Date(v.tanggal);
-    const diff=(now-t)/86400000;
-    if(diff<1)h+=v.jumlah;
-    if(diff<7)s7+=v.jumlah;
-    if(t.getMonth()===now.getMonth()&&t.getFullYear()===now.getFullYear())bln+=v.jumlah;
-    const lm=new Date(now.getFullYear(),now.getMonth()-1,1);
-    if(t.getMonth()===lm.getMonth()&&t.getFullYear()===lm.getFullYear())lalu+=v.jumlah;
+    
+    // Hitung Hari Ini (exact date match)
+    if(v.tanggal===todayStr){
+      h+=v.jumlah;
+      console.log('✅ Data Hari Ini:',v.nama,v.jumlah,'tandan - Tanggal:',v.tanggal);
+    } else {
+      // Debug: tampilkan data yang tidak match
+      if(v.tanggal){
+        const dayDiff=Math.abs(new Date(v.tanggal)-new Date(todayStr))/(1000*60*60*24);
+        if(dayDiff<2){
+          console.log('❌ Data TIDAK match (beda hari):',v.tanggal,'vs',todayStr,'- Selisih:',dayDiff,'hari');
+        }
+      }
+    }
+    
+    // Hitung 7 Hari Terakhir (termasuk hari ini)
+    if(last7Days.includes(v.tanggal)){
+      s7+=v.jumlah;
+      console.log('📊 7 Hari Terakhir:',v.tanggal,v.nama,v.jumlah,'tandan');
+    }
+    
+    // Hitung Bulan Ini - parse tanggal dengan benar
+    if(v.tanggal){
+      // Parse tanggal dari format YYYY-MM-DD
+      const [year,month,day]=v.tanggal.split('-').map(Number);
+      const dataMonth=month-1; // JavaScript month is 0-indexed
+      const dataYear=year;
+      
+      // Hitung Bulan Ini
+      if(dataMonth===jakartaTime.getMonth()&&dataYear===jakartaTime.getFullYear()){
+        bln+=v.jumlah;
+        console.log('📅 Bulan Ini:',v.tanggal,v.nama,v.jumlah,'tandan');
+      }
+      
+      // Hitung Bulan Lalu
+      if(dataMonth===lastMonth&&dataYear===lastMonthYear){
+        lalu+=v.jumlah;
+        console.log('📅 Bulan Lalu:',v.tanggal,v.nama,v.jumlah,'tandan');
+      }
+    }
   });
+  
+  console.log('=== RINGKASAN PERHITUNGAN ===');
+  console.log('Tanggal Hari Ini:',todayStr);
+  console.log('Bulan Sekarang:',jakartaTime.getMonth()+1,'(index:',jakartaTime.getMonth(),') Tahun:',jakartaTime.getFullYear());
+  console.log('Bulan Lalu (target):',lastMonth+1,'(index:',lastMonth,') Tahun:',lastMonthYear);
+  console.log('📊 HASIL: Hari Ini:',h,'| 7 Hari:',s7,'| Bulan Ini:',bln,'| Bulan Lalu:',lalu);
+  console.log('================================');
   sumHari.innerText=h+" Tandan";
   sum7.innerText=s7+" Tandan";
   sumBulan.innerText=bln+" Tandan";
@@ -752,26 +847,44 @@ async function loadBrondol(t){
 
 async function loadKerja(t){
   tabelKerja.innerHTML="";
-  if(!allData.kerja.length){const snap=await db.collection("kerja").get();allData.kerja=snap.docs.map(d=>({...d.data(),id:d.id}))}
+  
+  // Load from both semprot and tebas collections
+  if(!allData.kerja.length){
+    const snapSemprot=await db.collection("semprot").get();
+    const snapTebas=await db.collection("tebas").get();
+    allData.kerja=[
+      ...snapSemprot.docs.map(d=>({...d.data(),id:d.id,jenis:"Semprot"})),
+      ...snapTebas.docs.map(d=>({...d.data(),id:d.id,jenis:"Tebas"}))
+    ];
+    console.log('Loaded kerja data:',allData.kerja.length,'records');
+  }
+  
   let count=0;
   const search=searchInput.value.toLowerCase();
   allData.kerja.forEach(v=>{
     if(v.tanggal!==t)return;
-    if(search&&!v.anggota.toLowerCase().includes(search)&&!v.blok.toLowerCase().includes(search))return;
+    if(search&&!v.blok.toLowerCase().includes(search))return;
     count++;
+    const foto=v.foto?`<a href="${v.foto}" target="_blank">📷</a>`:"—";
     tabelKerja.innerHTML+=`
-      <tr><td>${v.jenis}</td><td>${v.blok}</td><td>${v.anggota}</td>
-      <td><span class="badge selesai">Selesai</span></td></tr>`;
+      <tr><td>${v.jenis}</td><td>${v.blok}</td><td>${v.keterangan||"—"}</td>
+      <td>${foto}</td></tr>`;
   });
+  console.log('Kerja data for',t,':',count,'records');
   if(!count)tabelKerja.innerHTML='<tr><td colspan="4" class="empty">Tidak ada data kerja</td></tr>';
 }
 
 /* === FITUR TAMBAHAN === */
 
 function loadTopPemanen(t){
+  console.log('🏆 Loading Top Pemanen for date:',t);
   tabelTop.innerHTML="";
   const top=allData.pemanen.filter(v=>v.tanggal===t&&v.jenis==="Janjang")
     .sort((a,b)=>b.jumlah-a.jumlah).slice(0,5);
+  console.log('Found',top.length,'top pemanen for',t);
+  if(top.length>0){
+    top.forEach((v,i)=>console.log(`  ${i+1}. ${v.nama}: ${v.jumlah} tandan (${v.tanggal})`));
+  }
   if(!top.length){tabelTop.innerHTML='<tr><td colspan="4" class="empty">Belum ada data</td></tr>';return}
   top.forEach((v,i)=>{
     const medal=['🥇','🥈','🥉','4️⃣','5️⃣'][i];
@@ -780,17 +893,31 @@ function loadTopPemanen(t){
 }
 
 function loadChart(){
+  console.log('📊 Loading Chart - 7 Hari Terakhir');
+  // Gunakan timezone Indonesia untuk grafik juga
   const now=new Date();
-  const labels=[],data=[];
+  const jakartaTime=new Date(now.toLocaleString('en-US',{timeZone:'Asia/Jakarta'}));
+  const labels=[],data=[],dates=[];
+  
   for(let i=6;i>=0;i--){
-    const d=new Date(now);d.setDate(d.getDate()-i);
-    const tgl=d.toISOString().slice(0,10);
-    const day=d.toLocaleDateString('id',{weekday:'short'});
-    labels.push(day);
+    const d=new Date(jakartaTime);
+    d.setDate(d.getDate()-i);
+    const year=d.getFullYear();
+    const month=String(d.getMonth()+1).padStart(2,'0');
+    const day=String(d.getDate()).padStart(2,'0');
+    const tgl=`${year}-${month}-${day}`;
+    const dayName=d.toLocaleDateString('id',{weekday:'short'});
+    
+    labels.push(`${dayName} ${day}/${month}`);
+    dates.push(tgl);
+    
     const total=allData.pemanen.filter(v=>v.tanggal===tgl&&v.jenis==="Janjang")
       .reduce((sum,v)=>sum+v.jumlah,0);
     data.push(total);
+    console.log(`  ${dayName} ${tgl}: ${total} tandan`);
   }
+  console.log('Chart dates:',dates);
+  console.log('Chart data:',data);
   if(chartInstance)chartInstance.destroy();
   chartInstance=new Chart(chartPanen,{
     type:'line',
@@ -930,6 +1057,26 @@ function exportExcel(){
 }
 
 /* LOAD */
+function updateLastUpdateTime(){
+  const now=new Date();
+  const timeStr=now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const lastUpdateEl=document.getElementById('lastUpdate');
+  if(lastUpdateEl){
+    lastUpdateEl.innerText=`Update terakhir: ${timeStr}`;
+  }
+}
+
+function forceRefresh(){
+  console.log('🔄 Force refresh triggered by user');
+  // Reset tanggal ke hari ini
+  tanggal.value=today();
+  updateDateDisplay(today());
+  // Clear cache data
+  allData={pemanen:[],absensi:[],brondol:[],kerja:[]};
+  // Reload semua data
+  loadAll();
+}
+
 async function loadAll(){
   showLoading();
   try{
@@ -943,6 +1090,7 @@ async function loadAll(){
     loadProgress(t);
     loadTopPemanen(t);
     loadChart();
+    updateLastUpdateTime();
     showToast('✅ Data berhasil dimuat!');
   }catch(e){
     showToast('❌ Gagal memuat data: '+e.message,3000);
@@ -965,25 +1113,36 @@ searchInput.addEventListener("input",()=>{
 // Auto-update tanggal setiap tengah malam
 function checkDateChange(){
   const currentDate=today();
+  console.log('Checking date change - Current:',currentDate,'Input:',tanggal.value);
   if(tanggal.value!==currentDate){
+    console.log('Date changed! Updating to:',currentDate);
     tanggal.value=currentDate;
     updateDateDisplay(currentDate);
     loadAll();
   }
 }
-// Cek setiap 1 menit apakah hari sudah berganti
-setInterval(checkDateChange,60000);
+// Cek setiap 10 detik apakah hari sudah berganti (lebih responsif)
+setInterval(checkDateChange,10000);
 
 // Force reload if page is cached (untuk GitHub Pages)
 window.addEventListener('pageshow',function(event){
   if(event.persisted){
     // Page loaded from cache, refresh tanggal
+    console.log('Page loaded from cache, forcing date refresh');
     tanggal.value=today();
     updateDateDisplay(today());
     loadAll();
   }
 });
 
+// Force check tanggal saat window focus (ketika user kembali ke tab)
+window.addEventListener('focus',function(){
+  console.log('Window focused, checking date');
+  checkDateChange();
+});
+
+// Initial load dengan force refresh
+console.log('Initial load - Setting date to:',today());
 loadAll();
 </script>
 
