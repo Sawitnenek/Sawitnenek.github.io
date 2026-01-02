@@ -1110,37 +1110,6 @@ searchInput.addEventListener("input",()=>{
   loadKerja(t);
 });
 
-// Auto-update tanggal setiap tengah malam
-function checkDateChange(){
-  const currentDate=today();
-  console.log('Checking date change - Current:',currentDate,'Input:',tanggal.value);
-  if(tanggal.value!==currentDate){
-    console.log('Date changed! Updating to:',currentDate);
-    tanggal.value=currentDate;
-    updateDateDisplay(currentDate);
-    loadAll();
-  }
-}
-// Cek setiap 10 detik apakah hari sudah berganti (lebih responsif)
-setInterval(checkDateChange,10000);
-
-// Force reload if page is cached (untuk GitHub Pages)
-window.addEventListener('pageshow',function(event){
-  if(event.persisted){
-    // Page loaded from cache, refresh tanggal
-    console.log('Page loaded from cache, forcing date refresh');
-    tanggal.value=today();
-    updateDateDisplay(today());
-    loadAll();
-  }
-});
-
-// Force check tanggal saat window focus (ketika user kembali ke tab)
-window.addEventListener('focus',function(){
-  console.log('Window focused, checking date');
-  checkDateChange();
-});
-
 // Initial load dengan force refresh
 console.log('Initial load - Setting date to:',today());
 loadAll();
