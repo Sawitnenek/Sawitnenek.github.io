@@ -1,1119 +1,225 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-<title>Dashboard Laporan Sawit</title>
+import React, { useState, useEffect } from 'react';
+import { Heart, Copy, RefreshCw, ShieldAlert, TrendingDown, Users, CheckCircle2 } from 'lucide-react';
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+const quotes = [
+  {
+    id: 1,
+    category: 'syukur',
+    text: "Barangsiapa yang tidak mensyukuri yang sedikit, maka ia tidak akan mampu mensyukuri yang banyak.",
+    author: "Refleksi Diri"
+  },
+  {
+    id: 2,
+    category: 'rezeki',
+    text: "Jangan menghina hasil yang kecil. Di dalam titisan yang sedikit itu, mungkin ada keberkatan yang mampu memadamkan api kegelisahanmu.",
+    author: "Mutiara Kata"
+  },
+  {
+    id: 3,
+    category: 'kepercayaan',
+    text: "Mencurigai semua orang tidak akan melindungimu dari kekecewaan, ia hanya akan memenjarakanmu dalam kesunyian.",
+    author: "Nasihat Bijak"
+  },
+  {
+    id: 4,
+    category: 'syukur',
+    text: "Kufur nikmat bermula apabila mata terlalu fokus melihat apa yang ada di tangan orang lain, sehingga terlupa apa yang sedang digenggam sendiri.",
+    author: "Cermin Hati"
+  },
+  {
+    id: 5,
+    category: 'rezeki',
+    text: "Rezeki bukan soal angka, tapi soal rasa cukup. Tanpa rasa cukup, seluruh dunia pun tidak akan pernah memuaskanmu.",
+    author: "Pesanan Murabbi"
+  },
+  {
+    id: 6,
+    category: 'kepercayaan',
+    text: "Kepercayaan adalah jambatan. Jika kamu takut untuk membinanya, kamu akan selamanya terasing di pulau kebimbanganmu sendiri.",
+    author: "Kata Hikmah"
+  },
+  {
+    id: 7,
+    category: 'syukur',
+    text: "Nikmat yang tidak disyukuri adalah racun yang membunuh kebahagiaan secara perlahan.",
+    author: "Kalam Jiwa"
+  },
+  {
+    id: 8,
+    category: 'rezeki',
+    text: "Hasil yang kecil yang diredhai lebih baik daripada keuntungan besar yang membawa kepada kelalaian.",
+    author: "Peringatan Diri"
+  },
+  {
+    id: 9,
+    category: 'kepercayaan',
+    text: "Berilah peluang untuk percaya. Manusia mungkin mengecewakan, tetapi menutup pintu hati hanya akan menyekat rahmat persaudaraan.",
+    author: "Minda Positif"
+  }
+];
 
-<!-- CHART -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+export default function App() {
+  const [filter, setFilter] = useState('semua');
+  const [activeQuote, setActiveQuote] = useState(null);
+  const [copyStatus, setCopyStatus] = useState(null);
 
-<!-- EXPORT -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  useEffect(() => {
+    getRandomQuote();
+  }, []);
 
-<style>
-/* RESET */
-*{box-sizing:border-box;margin:0;padding:0}
-body{
-  font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
-  background:linear-gradient(135deg,#667eea 0%,#764ba2 50%,#f093fb 100%);
-  background-attachment:fixed;
-  margin:0;color:#1e293b;
-  min-height:100vh;
-  padding-bottom:40px
-}
-h2{
-  text-align:center;
-  margin:30px 0 8px;
-  font-weight:800;
-  font-size:2.5rem;
-  color:#fff;
-  text-shadow:0 4px 12px rgba(0,0,0,.3);
-  animation:slideDown .6s ease-out
-}
-.subtitle{
-  text-align:center;
-  color:#fff;
-  margin-bottom:24px;
-  font-size:1.1rem;
-  font-weight:500;
-  animation:fadeIn .8s ease-out;
-  text-shadow:0 2px 8px rgba(0,0,0,.3)
-}
-.container{max-width:1200px;margin:auto;padding:20px}
+  const getRandomQuote = () => {
+    const filtered = filter === 'semua' ? quotes : quotes.filter(q => q.category === filter);
+    const randomIndex = Math.floor(Math.random() * filtered.length);
+    setActiveQuote(filtered[randomIndex]);
+  };
 
-@keyframes slideDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@keyframes scaleIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+  const copyToClipboard = (text) => {
+    document.execCommand('copy'); // Fallback for environments
+    // Logic for UI feedback
+    setCopyStatus(activeQuote.id);
+    setTimeout(() => setCopyStatus(null), 2000);
+  };
 
-/* CARD */
-.card{
-  background:rgba(255,255,255,.95);
-  backdrop-filter:blur(10px);
-  padding:24px;
-  border-radius:20px;
-  margin-bottom:20px;
-  box-shadow:0 20px 60px rgba(0,0,0,.15),0 0 0 1px rgba(255,255,255,.5) inset;
-  border:1px solid rgba(255,255,255,.3);
-  transition:all .3s cubic-bezier(.4,0,.2,1);
-  animation:scaleIn .5s ease-out backwards;
-  animation-delay:calc(var(--card-index,0) * .1s)
-}
-.card:hover{
-  transform:translateY(-4px);
-  box-shadow:0 25px 70px rgba(0,0,0,.2),0 0 0 1px rgba(255,255,255,.6) inset
-}
+  const categories = [
+    { id: 'semua', label: 'Semua', icon: <Heart className="w-4 h-4" /> },
+    { id: 'syukur', label: 'Syukur', icon: <ShieldAlert className="w-4 h-4" /> },
+    { id: 'rezeki', label: 'Hasil & Rezeki', icon: <TrendingDown className="w-4 h-4" /> },
+    { id: 'kepercayaan', label: 'Kepercayaan', icon: <Users className="w-4 h-4" /> },
+  ];
 
-/* FILTER */
-.filter{display:flex;justify-content:center;align-items:center;gap:14px;flex-wrap:wrap}
-.filter b{color:#475569;font-size:1rem}
-.filter input{
-  padding:10px 16px;
-  border-radius:12px;
-  border:2px solid #e2e8f0;
-  background:#fff;
-  font-size:.95rem;
-  transition:all .2s;
-  box-shadow:0 2px 8px rgba(0,0,0,.05)
-}
-.filter input:focus{
-  outline:none;
-  border-color:#667eea;
-  box-shadow:0 0 0 3px rgba(102,126,234,.1),0 4px 12px rgba(0,0,0,.1)
-}
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-amber-100">
+      {/* Header */}
+      <header className="max-w-4xl mx-auto pt-12 px-6 text-center">
+        <h1 className="text-4xl font-light tracking-tight text-slate-900 mb-2">
+          Gema <span className="font-semibold text-amber-600">Nurani</span>
+        </h1>
+        <p className="text-slate-500 max-w-md mx-auto italic">
+          "Mengetuk pintu hati yang leka, menyedarkan jiwa yang terleka."
+        </p>
+      </header>
 
-/* RINGKASAN */
-.summary{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  gap:16px
-}
-.summary .box{
-  background:linear-gradient(135deg,#667eea,#764ba2);
-  border-radius:18px;
-  padding:20px;
-  text-align:center;
-  border:none;
-  position:relative;
-  overflow:hidden;
-  transition:all .3s;
-  cursor:pointer;
-  box-shadow:0 10px 30px rgba(102,126,234,.3)
-}
-.summary .box:hover{
-  transform:translateY(-5px) scale(1.02);
-  box-shadow:0 15px 40px rgba(102,126,234,.4)
-}
-.summary .box::before{
-  content:'';
-  position:absolute;
-  top:-50%;
-  right:-50%;
-  width:200%;
-  height:200%;
-  background:radial-gradient(circle,rgba(255,255,255,.2) 0%,transparent 70%);
-  transition:.5s
-}
-.summary .box:hover::before{top:-60%;right:-60%}
-.summary .box:nth-child(1){background:linear-gradient(135deg,#667eea,#764ba2)}
-.summary .box:nth-child(2){background:linear-gradient(135deg,#f093fb,#f5576c)}
-.summary .box:nth-child(3){background:linear-gradient(135deg,#4facfe,#00f2fe)}
-.summary .box:nth-child(4){background:linear-gradient(135deg,#43e97b,#38f9d7)}
-.summary .box h4{margin:0;font-size:.9rem;color:#fff;font-weight:600;opacity:.9;position:relative;z-index:1}
-.summary .box b{display:block;margin-top:10px;font-size:2rem;color:#fff;font-weight:800;position:relative;z-index:1;text-shadow:0 2px 8px rgba(0,0,0,.2)}
+      <main className="max-w-4xl mx-auto py-12 px-6">
+        {/* Category Filters */}
+        <div className="flex flex-wrap justify-center gap-3 mb-12">
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => {
+                setFilter(cat.id);
+                // Trigger refresh to match new filter
+                setTimeout(getRandomQuote, 10);
+              }}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition-all duration-300 border ${
+                filter === cat.id
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-lg'
+                  : 'bg-white text-slate-600 border-slate-200 hover:border-amber-300 hover:text-amber-600'
+              }`}
+            >
+              {cat.icon}
+              <span className="text-sm font-medium">{cat.label}</span>
+            </button>
+          ))}
+        </div>
 
-/* SECTION */
-.section-title{
-  font-weight:700;
-  margin-bottom:16px;
-  color:#1e293b;
-  font-size:1.2rem;
-  padding-bottom:12px;
-  border-bottom:3px solid transparent;
-  border-image:linear-gradient(90deg,#667eea,#764ba2,transparent)1;
-  display:flex;
-  align-items:center;
-  gap:8px
-}
+        {/* Featured Quote Display */}
+        {activeQuote && (
+          <div className="relative bg-white border border-slate-100 rounded-3xl p-10 md:p-16 shadow-xl shadow-slate-200/50 mb-16 overflow-hidden">
+            <div className="absolute top-0 left-0 w-2 h-full bg-amber-500"></div>
+            <div className="absolute -top-10 -right-10 opacity-5">
+              <Heart size={200} />
+            </div>
+            
+            <div className="relative z-10 flex flex-col items-center text-center">
+              <span className="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-[10px] uppercase tracking-widest font-bold mb-6">
+                Tema: {activeQuote.category}
+              </span>
+              
+              <p className="text-2xl md:text-3xl font-serif text-slate-700 leading-relaxed mb-8">
+                "{activeQuote.text}"
+              </p>
+              
+              <div className="w-12 h-px bg-slate-200 mb-6"></div>
+              
+              <p className="text-slate-400 font-medium tracking-wide">
+                — {activeQuote.author}
+              </p>
 
-/* TABLE */
-table{
-  width:100%;
-  table-layout:fixed;
-  border-collapse:collapse;
-  border-radius:16px;
-  overflow:hidden;
-  font-size:.95rem;
-  box-shadow:0 4px 16px rgba(0,0,0,.08)
-}
-thead th{
-  background:linear-gradient(135deg,#667eea,#764ba2);
-  color:#fff;
-  padding:14px 10px;
-  font-size:.78rem;
-  letter-spacing:.8px;
-  text-align:center;
-  font-weight:700;
-  text-transform:uppercase;
-  position:relative;
-  box-shadow:0 2px 8px rgba(102,126,234,.3);
-  border:none;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis
-}
-thead th::after{
-  content:'';
-  position:absolute;
-  bottom:0;
-  left:0;
-  right:0;
-  height:2px;
-  background:linear-gradient(90deg,transparent,#fff,transparent)
-}
-tbody td{
-  padding:12px 10px;
-  border-bottom:1px solid #f1f5f9;
-  text-align:center;
-  vertical-align:middle;
-  color:#475569;
-  font-weight:500;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis
-}
-tbody tr{
-  transition:background-color .2s;
-  background:#fff
-}
-tbody tr:nth-child(even){background:#f8fafc}
-tbody tr:hover{
-  background:linear-gradient(90deg,#f0f4ff,#faf5ff)
-}
+              <div className="flex gap-4 mt-10">
+                <button 
+                  onClick={getRandomQuote}
+                  className="p-4 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-full transition-all group"
+                  title="Tukar Kata-kata"
+                >
+                  <RefreshCw className="w-6 h-6 group-hover:rotate-180 transition-transform duration-500" />
+                </button>
+                <button 
+                  onClick={() => {
+                    const el = document.createElement('textarea');
+                    el.value = `${activeQuote.text} — ${activeQuote.author}`;
+                    document.body.appendChild(el);
+                    el.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(el);
+                    setCopyStatus(activeQuote.id);
+                    setTimeout(() => setCopyStatus(null), 2000);
+                  }}
+                  className="flex items-center gap-2 px-6 py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-full font-semibold transition-all shadow-md shadow-amber-200"
+                >
+                  {copyStatus === activeQuote.id ? (
+                    <>
+                      <CheckCircle2 className="w-5 h-5" />
+                      <span>Tersalin!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-5 h-5" />
+                      <span>Salin Petikan</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
-/* TOTAL ROW */
-tfoot tr{
-  background:linear-gradient(135deg,#667eea,#764ba2);
-  color:#fff
-}
-tfoot td{
-  padding:16px 12px;
-  font-weight:800;
-  text-align:center;
-  border-top:3px solid rgba(255,255,255,.3);
-  color:#fff;
-  font-size:1.05rem;
-  text-shadow:0 2px 4px rgba(0,0,0,.2)
-}
-.total-number{
-  font-size:1.3rem;
-  letter-spacing:1px;
-  font-weight:800
-}
+        {/* Content Section: Detailed Reflections */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
+            <div className="w-12 h-12 bg-rose-50 text-rose-500 rounded-xl flex items-center justify-center mb-6">
+              <ShieldAlert />
+            </div>
+            <h3 className="text-lg font-bold mb-3">Bahaya Kufur Nikmat</h3>
+            <p className="text-sm text-slate-500 leading-relaxed">
+              Kufur nikmat bukan sekadar tidak berterima kasih, tetapi menafikan kebaikan yang diterima. Ia menjadikan hati keras dan sentiasa merasa tidak cukup walaupun dikelilingi kemewahan.
+            </p>
+          </div>
 
-/* BADGE */
-.badge{
-  padding:8px 16px;
-  border-radius:999px;
-  font-size:.75rem;
-  font-weight:700;
-  text-transform:uppercase;
-  letter-spacing:.5px;
-  transition:all .2s;
-  display:inline-flex;
-  align-items:center;
-  gap:4px;
-  box-shadow:0 2px 8px rgba(0,0,0,.1);
-  border:none;
-  cursor:pointer
-}
-.badge:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.2)}
-.hadir{
-  background:linear-gradient(135deg,#4facfe,#00f2fe);
-  color:#fff
-}
-.tidak{
-  background:linear-gradient(135deg,#f093fb,#f5576c);
-  color:#fff
-}
-.selesai{
-  background:linear-gradient(135deg,#43e97b,#38f9d7);
-  color:#fff
-}
-.belum{
-  background:linear-gradient(135deg,#fa709a,#fee140);
-  color:#fff
-}
+          <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
+            <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center mb-6">
+              <TrendingDown />
+            </div>
+            <h3 className="text-lg font-bold mb-3">Keberkatan Hasil</h3>
+            <p className="text-sm text-slate-500 leading-relaxed">
+              Hasil yang sedikit namun berkat akan membawa kepada ketenangan. Menolak hasil yang kecil hanya akan menjauhkan kita daripada peluang yang lebih besar di masa hadapan.
+            </p>
+          </div>
 
-footer{
-  text-align:center;
-  padding:24px;
-  color:#fff;
-  font-size:.9rem;
-  font-weight:600;
-  margin-top:20px;
-  text-shadow:0 2px 4px rgba(0,0,0,.3)
-}
+          <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
+            <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center mb-6">
+              <Users />
+            </div>
+            <h3 className="text-lg font-bold mb-3">Jambatan Kepercayaan</h3>
+            <p className="text-sm text-slate-500 leading-relaxed">
+              Hidup tanpa kepercayaan adalah hidup dalam ketakutan. Memberi ruang kepada orang lain bukan tanda lemah, tetapi tanda kita berani untuk hidup secara bermasyarakat.
+            </p>
+          </div>
+        </div>
+      </main>
 
-/* LOADING */
-.loading{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999}
-.spinner{
-  border:5px solid rgba(255,255,255,.2);
-  border-top:5px solid #667eea;
-  border-right:5px solid #764ba2;
-  border-radius:50%;
-  width:60px;
-  height:60px;
-  animation:spin .8s linear infinite;
-  box-shadow:0 4px 20px rgba(102,126,234,.4)
-}
-@keyframes spin{to{transform:rotate(360deg)}}
-.overlay{
-  display:none;
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background:rgba(30,41,59,.7);
-  backdrop-filter:blur(4px);
-  z-index:9998
-}
-
-/* TOAST */
-.toast{
-  position:fixed;
-  top:20px;
-  right:20px;
-  background:linear-gradient(135deg,#667eea,#764ba2);
-  color:#fff;
-  padding:16px 28px;
-  border-radius:12px;
-  box-shadow:0 8px 24px rgba(102,126,234,.4),0 0 0 1px rgba(255,255,255,.2) inset;
-  z-index:10000;
-  opacity:0;
-  transform:translateX(400px);
-  transition:all .4s cubic-bezier(.4,0,.2,1);
-  pointer-events:none;
-  font-weight:600;
-  font-size:.95rem;
-  backdrop-filter:blur(10px)
-}
-.toast.show{
-  opacity:1;
-  transform:translateX(0);
-  pointer-events:auto
-}
-
-/* EMPTY STATE */
-.empty{text-align:center;padding:30px;color:#9ca3af;font-style:italic}
-
-/* SEARCH */
-.search-box{margin-top:16px}
-.search-box input{
-  width:100%;
-  padding:14px 20px 14px 45px;
-  border-radius:12px;
-  border:2px solid #e2e8f0;
-  font-size:.95rem;
-  background:#fff url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="%23667eea" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>') no-repeat 15px center;
-  transition:all .2s;
-  box-shadow:0 2px 8px rgba(0,0,0,.05)
-}
-.search-box input:focus{
-  outline:none;
-  border-color:#667eea;
-  box-shadow:0 0 0 4px rgba(102,126,234,.1),0 4px 16px rgba(0,0,0,.1);
-  transform:translateY(-2px)
-}
-.search-box input::placeholder{color:#94a3b8}
-
-/* DATE DISPLAY */
-.date-display{
-  text-align:center;
-  background:linear-gradient(135deg,#667eea,#764ba2);
-  color:#fff;
-  padding:20px 30px;
-  border-radius:16px;
-  margin-bottom:24px;
-  font-size:1.3rem;
-  font-weight:700;
-  letter-spacing:1px;
-  box-shadow:0 10px 30px rgba(102,126,234,.4),0 0 0 1px rgba(255,255,255,.2) inset;
-  position:relative;
-  overflow:hidden;
-  animation:slideDown .5s ease-out
-}
-.date-display::before{
-  content:'';
-  position:absolute;
-  top:-50%;
-  left:-50%;
-  width:200%;
-  height:200%;
-  background:radial-gradient(circle,rgba(255,255,255,.15) 0%,transparent 70%);
-  animation:rotate 10s linear infinite
-}
-@keyframes rotate{to{transform:rotate(360deg)}}
-.date-display::after{content:'';position:absolute;inset:0;border-radius:16px;padding:2px;background:linear-gradient(135deg,rgba(255,255,255,.5),transparent);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
-.refresh-btn{
-  display:inline-block;
-  margin-left:12px;
-  padding:8px 16px;
-  background:rgba(255,255,255,.2);
-  border:2px solid rgba(255,255,255,.4);
-  border-radius:8px;
-  color:#fff;
-  cursor:pointer;
-  font-size:.85rem;
-  transition:all .2s;
-  font-weight:600
-}
-.refresh-btn:hover{
-  background:rgba(255,255,255,.3);
-  transform:scale(1.05)
-}
-.refresh-btn:active{transform:scale(.95)}
-.last-update{
-  display:block;
-  font-size:.75rem;
-  opacity:.9;
-  margin-top:8px;
-  font-weight:400
-}
-
-/* EXPORT HIDE */
-.export-hide{transition:opacity .2s}
-.exporting .export-hide{display:none!important}
-
-/* EXPORT AREA */
-#exportArea{position:relative}
-.export-mode{max-width:800px!important;margin:20px auto!important;padding:20px!important;background:#fff!important}
-
-/* PROGRESS BAR */
-.progress-container{
-  background:#e2e8f0;
-  border-radius:999px;
-  height:18px;
-  overflow:hidden;
-  position:relative;
-  box-shadow:0 2px 8px rgba(0,0,0,.1) inset
-}
-#progressBar{
-  height:100%;
-  background:linear-gradient(90deg,#667eea,#764ba2,#f093fb);
-  background-size:200% 100%;
-  transition:width .6s cubic-bezier(.4,0,.2,1);
-  position:relative;
-  box-shadow:0 2px 8px rgba(102,126,234,.4);
-  animation:shimmer 2s linear infinite
-}
-@keyframes shimmer{to{background-position:200% center}}
-#progressBar::after{
-  content:'';
-  position:absolute;
-  top:0;
-  left:0;
-  right:0;
-  bottom:0;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);
-  animation:slide 1.5s ease-in-out infinite
-}
-@keyframes slide{to{transform:translateX(100%)}}
-#progressText{
-  text-align:center;
-  font-weight:800;
-  margin-top:10px;
-  font-size:1.1rem;
-  color:#667eea
-}
-
-/* BUTTON */
-button{
-  transition:all .3s cubic-bezier(.4,0,.2,1);
-  position:relative;
-  overflow:hidden;
-  min-height:44px;
-  touch-action:manipulation;
-  -webkit-tap-highlight-color:transparent;
-  cursor:pointer
-}
-button::before{
-  content:'';
-  position:absolute;
-  top:50%;
-  left:50%;
-  width:0;
-  height:0;
-  border-radius:50%;
-  background:rgba(255,255,255,.3);
-  transform:translate(-50%,-50%);
-  transition:width .5s,height .5s
-}
-button:hover::before{
-  width:300px;
-  height:300px
-}
-button:active{
-  transform:scale(.95)
-}
-
-@media(max-width:700px){
-  body{padding-bottom:20px}
-  .container{padding:12px}
-  h2{font-size:1.6rem;margin:20px 0 6px}
-  .subtitle{font-size:.95rem;margin-bottom:16px}
-  .card{padding:16px;margin-bottom:16px;border-radius:16px}
-  
-  /* Table Mobile */
-  table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;font-size:.85rem;table-layout:auto}
-  thead{display:table;width:100%;table-layout:fixed}
-  tbody{display:table;width:100%;table-layout:fixed}
-  tfoot{display:table;width:100%;table-layout:fixed}
-  thead th{padding:10px 6px;font-size:.68rem;white-space:normal}
-  tbody td{padding:10px 6px;white-space:normal}
-  tfoot td{padding:12px 6px;font-size:.9rem}
-  .total-number{font-size:1.05rem}
-  
-  /* Summary Mobile */
-  .summary{grid-template-columns:repeat(2,1fr);gap:10px}
-  .summary .box{padding:14px;border-radius:14px}
-  .summary .box h4{font-size:.8rem}
-  .summary .box b{font-size:1.5rem;margin-top:8px}
-  
-  /* Date Display Mobile */
-  .date-display{font-size:.95rem;padding:14px 16px;margin-bottom:16px;letter-spacing:.5px}
-  
-  /* Filter Mobile */
-  .filter{gap:8px}
-  .filter b{font-size:.9rem}
-  .filter input{padding:10px 14px;font-size:.9rem}
-  
-  /* Search Mobile */
-  .search-box{margin-top:12px}
-  .search-box input{padding:12px 16px 12px 40px;font-size:.9rem}
-  
-  /* Section Title Mobile */
-  .section-title{font-size:1rem;margin-bottom:12px}
-  
-  /* Badge Mobile */
-  .badge{padding:6px 12px;font-size:.7rem}
-  
-  /* Button Mobile */
-  button{padding:12px 16px;font-size:.85rem;min-height:44px}
-  
-  /* Toast Mobile */
-  .toast{right:10px;top:10px;left:10px;padding:12px 16px;font-size:.85rem;border-radius:10px}
-  
-  /* Progress Mobile */
-  .progress-container{height:16px}
-  #progressText{font-size:1rem;margin-top:8px}
-  
-  /* Chart Mobile */
-  #chartPanen{max-height:220px!important}
-  
-  /* Loading Mobile */
-  .spinner{width:50px;height:50px;border-width:4px}
-}
-
-@media print{
-  .filter,.search-box,button,.export-hide{display:none}
-  body{background:#fff}
-  .card{box-shadow:none;page-break-inside:avoid;border:1px solid #e2e8f0}
-  thead th{background:#667eea!important;-webkit-print-color-adjust:exact}
-  .summary .box{-webkit-print-color-adjust:exact}
-}
-</style>
-</head>
-
-<body>
-<h2>📊 Dashboard Laporan Sawit</h2>
-<div class="subtitle">Rekap Harian Kebun</div>
-
-<div class="container">
-
-<!-- DATE DISPLAY -->
-<div class="date-display" id="dateDisplay">
-  📅 Memuat...
-  <button class="refresh-btn" id="refreshBtn" onclick="forceRefresh()">🔄 Refresh</button>
-  <span class="last-update" id="lastUpdate"></span>
-</div>
-
-<!-- FILTER -->
-<div class="card export-hide">
-  <div class="filter">
-    <b>Tanggal:</b>
-    <input type="date" id="tanggal">
-  </div>
-  <div class="search-box">
-    <input type="text" id="searchInput" placeholder="🔍 Cari nama anggota atau blok...">
-  </div>
-</div>
-
-<!-- EXPORT AREA START -->
-<div id="exportArea">
-
-<!-- RINGKASAN -->
-<div class="card">
-  <div class="summary">
-    <div class="box"><h4>🌴 Hari Ini</h4><b id="sumHari">0</b></div>
-    <div class="box"><h4>📊 7 Hari Terakhir</h4><b id="sum7">0</b></div>
-    <div class="box"><h4>📈 Bulan Ini</h4><b id="sumBulan">0</b></div>
-    <div class="box"><h4>📉 Bulan Lalu</h4><b id="sumLalu">0</b></div>
-  </div>
-</div>
-
-<!-- CHART PRODUKTIVITAS -->
-<div class="card">
-  <div class="section-title">📊 GRAFIK PRODUKTIVITAS 7 HARI</div>
-  <canvas id="chartPanen" style="max-height:280px"></canvas>
-</div>
-
-<!-- TOP PEMANEN -->
-<div class="card">
-  <div class="section-title">🏆 TOP 5 PEMANEN HARI INI</div>
-  <table>
-    <thead><tr><th>RANK</th><th>NAMA</th><th>JANJANG</th><th>BLOK</th></tr></thead>
-    <tbody id="tabelTop"></tbody>
-  </table>
-</div>
-
-<!-- ABSENSI -->
-<div class="card">
-  <div class="section-title">👥 ABSENSI ANGGOTA</div>
-  <table>
-    <thead><tr><th>NAMA</th><th>STATUS</th></tr></thead>
-    <tbody id="tabelAbsensi"></tbody>
-  </table>
-</div>
-
-<!-- PEMANEN -->
-<div class="card">
-  <div class="section-title">🌾 PEMANEN</div>
-  <table>
-    <thead><tr><th>NAMA</th><th>BLOK</th><th>JANJANG</th><th>STATUS</th></tr></thead>
-    <tbody id="tabelPemanen"></tbody>
-    <tfoot>
-      <tr>
-        <td colspan="2">TOTAL</td>
-        <td id="totalJanjang" class="total-number">0</td>
-        <td></td>
-      </tr>
-    </tfoot>
-  </table>
-</div>
-
-<!-- BRONDOL -->
-<div class="card">
-  <div class="section-title">📦 KARUNG BRONDOL</div>
-  <table>
-    <thead><tr><th>NAMA</th><th>JUMLAH</th><th>KETERANGAN</th></tr></thead>
-    <tbody id="tabelBrondol"></tbody>
-    <tfoot>
-      <tr>
-        <td>TOTAL</td>
-        <td id="totalKarung" class="total-number">0</td>
-        <td></td>
-      </tr>
-    </tfoot>
-  </table>
-</div>
-
-<!-- KERJA -->
-<div class="card">
-  <div class="section-title">⚙️ SEMPROT & TEBAS</div>
-  <table>
-    <thead><tr><th>JENIS</th><th>BLOK</th><th>KETERANGAN</th><th>FOTO</th></tr></thead>
-    <tbody id="tabelKerja"></tbody>
-  </table>
-</div>
-
-<!-- PROGRESS & EXPORT -->
-<div class="card">
-  <div class="section-title">📈 PROGRES PANEN HARIAN</div>
-
-  <div style="margin-bottom:20px">
-    <div class="progress-container">
-      <div id="progressBar"></div>
+      <footer className="py-12 text-center text-slate-400 text-sm">
+        <p>© 2024 Gema Nurani — Refleksi Untuk Jiwa Yang Mencari Ketenangan</p>
+      </footer>
     </div>
-    <div id="progressText">0%</div>
-  </div>
-
-  <div style="display:flex;gap:10px;flex-wrap:wrap" class="export-hide">
-    <button onclick="exportPNG()" class="badge" style="background:#8b5cf6;color:#fff">🖼️ Export PNG HD</button>
-    <button onclick="exportPDF()" class="badge selesai">📥 Export PDF</button>
-    <button onclick="exportExcel()" class="badge hadir">📊 Export Excel</button>
-  </div>
-</div>
-
-<!-- EXPORT AREA END -->
-
-</div>
-
-<!-- LOADING -->
-<div class="overlay" id="overlay"></div>
-<div class="loading" id="loading"><div class="spinner"></div></div>
-
-<!-- TOAST -->
-<div class="toast" id="toast"></div>
-
-<footer>© 2026 Copyright Irwan</footer>
-
-<script>
-firebase.initializeApp({
-  apiKey:"AIzaSyCazwLdErOX7aYw3qh8VSyOsdV5i13S3nQ",
-  authDomain:"tools-mandor-sawit.firebaseapp.com",
-  projectId:"tools-mandor-sawit"
-});
-const db=firebase.firestore();
-const today=()=>{
-  // Gunakan timezone Indonesia (WIB) untuk memastikan tanggal yang benar
-  const now=new Date();
-  // Tambahkan offset timezone Indonesia (+7 jam)
-  const jakartaTime=new Date(now.toLocaleString('en-US',{timeZone:'Asia/Jakarta'}));
-  const year=jakartaTime.getFullYear();
-  const month=String(jakartaTime.getMonth()+1).padStart(2,'0');
-  const day=String(jakartaTime.getDate()).padStart(2,'0');
-  const todayStr=`${year}-${month}-${day}`;
-  console.log('Today date (Jakarta):',todayStr,new Date());
-  return todayStr;
-};
-
-/* === UTILITY FUNCTIONS === */
-let chartInstance=null;
-let allData={pemanen:[],absensi:[],brondol:[],kerja:[]};
-
-function updateDateDisplay(dateStr){
-  const d=new Date(dateStr+'T00:00:00');
-  const hari=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][d.getDay()];
-  const bulan=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][d.getMonth()];
-  const tgl=d.getDate();
-  const tahun=d.getFullYear();
-  const displayText=`📅 ${hari}, ${tgl} ${bulan} ${tahun}`;
-  console.log('Display date:',displayText);
-  dateDisplay.innerText=displayText;
+  );
 }
-
-function showLoading(){loading.style.display='block';overlay.style.display='block'}
-function hideLoading(){loading.style.display='none';overlay.style.display='none'}
-function showToast(msg,duration=2000){
-  toast.innerText=msg;
-  toast.classList.add('show');
-  setTimeout(()=>toast.classList.remove('show'),duration);
-}
-
-/* === DATA LOADING === */
-
-async function loadRingkasan(){
-  const snap=await db.collection("pemanen").get();
-  allData.pemanen=[];
-  const now=new Date();
-  // Gunakan timezone Indonesia untuk semua perhitungan
-  const jakartaTime=new Date(now.toLocaleString('en-US',{timeZone:'Asia/Jakarta'}));
-  const todayStr=today(); // Format: YYYY-MM-DD
-  
-  // Buat array tanggal untuk 7 hari terakhir menggunakan Jakarta timezone
-  const last7Days=[];
-  console.log('📅 Calculating last 7 days from Jakarta timezone:',jakartaTime.toISOString());
-  for(let i=0;i<7;i++){
-    const d=new Date(jakartaTime);
-    d.setDate(d.getDate()-i);
-    const year=d.getFullYear();
-    const month=String(d.getMonth()+1).padStart(2,'0');
-    const day=String(d.getDate()).padStart(2,'0');
-    const dateStr=`${year}-${month}-${day}`;
-    last7Days.push(dateStr);
-  }
-  console.log('Last 7 days:',last7Days);
-  
-  // Deklarasi variable untuk bulan lalu di luar scope
-  const lastMonth=jakartaTime.getMonth()===0?11:jakartaTime.getMonth()-1;
-  const lastMonthYear=jakartaTime.getMonth()===0?jakartaTime.getFullYear()-1:jakartaTime.getFullYear();
-  
-  let h=0,s7=0,bln=0,lalu=0;
-  snap.forEach(d=>{
-    const v={...d.data(),id:d.id};
-    allData.pemanen.push(v);
-    if(v.jenis!=="Janjang")return;
-    
-    // Hitung Hari Ini (exact date match)
-    if(v.tanggal===todayStr){
-      h+=v.jumlah;
-      console.log('✅ Data Hari Ini:',v.nama,v.jumlah,'tandan - Tanggal:',v.tanggal);
-    } else {
-      // Debug: tampilkan data yang tidak match
-      if(v.tanggal){
-        const dayDiff=Math.abs(new Date(v.tanggal)-new Date(todayStr))/(1000*60*60*24);
-        if(dayDiff<2){
-          console.log('❌ Data TIDAK match (beda hari):',v.tanggal,'vs',todayStr,'- Selisih:',dayDiff,'hari');
-        }
-      }
-    }
-    
-    // Hitung 7 Hari Terakhir (termasuk hari ini)
-    if(last7Days.includes(v.tanggal)){
-      s7+=v.jumlah;
-      console.log('📊 7 Hari Terakhir:',v.tanggal,v.nama,v.jumlah,'tandan');
-    }
-    
-    // Hitung Bulan Ini - parse tanggal dengan benar
-    if(v.tanggal){
-      // Parse tanggal dari format YYYY-MM-DD
-      const [year,month,day]=v.tanggal.split('-').map(Number);
-      const dataMonth=month-1; // JavaScript month is 0-indexed
-      const dataYear=year;
-      
-      // Hitung Bulan Ini
-      if(dataMonth===jakartaTime.getMonth()&&dataYear===jakartaTime.getFullYear()){
-        bln+=v.jumlah;
-        console.log('📅 Bulan Ini:',v.tanggal,v.nama,v.jumlah,'tandan');
-      }
-      
-      // Hitung Bulan Lalu
-      if(dataMonth===lastMonth&&dataYear===lastMonthYear){
-        lalu+=v.jumlah;
-        console.log('📅 Bulan Lalu:',v.tanggal,v.nama,v.jumlah,'tandan');
-      }
-    }
-  });
-  
-  console.log('=== RINGKASAN PERHITUNGAN ===');
-  console.log('Tanggal Hari Ini:',todayStr);
-  console.log('Bulan Sekarang:',jakartaTime.getMonth()+1,'(index:',jakartaTime.getMonth(),') Tahun:',jakartaTime.getFullYear());
-  console.log('Bulan Lalu (target):',lastMonth+1,'(index:',lastMonth,') Tahun:',lastMonthYear);
-  console.log('📊 HASIL: Hari Ini:',h,'| 7 Hari:',s7,'| Bulan Ini:',bln,'| Bulan Lalu:',lalu);
-  console.log('================================');
-  sumHari.innerText=h+" Tandan";
-  sum7.innerText=s7+" Tandan";
-  sumBulan.innerText=bln+" Tandan";
-  sumLalu.innerText=lalu+" Tandan";
-}
-
-async function loadAbsensi(t){
-  tabelAbsensi.innerHTML="";
-  if(!allData.absensi.length){const snap=await db.collection("absensi").get();allData.absensi=snap.docs.map(d=>({...d.data(),id:d.id}))}
-  let count=0;
-  allData.absensi.forEach(v=>{
-    if(v.tanggal!==t)return;
-    count++;
-    tabelAbsensi.innerHTML+=`
-      <tr><td>${v.nama}</td>
-      <td><span class="badge ${v.status==="Hadir"?"hadir":"tidak"}">${v.status}</span></td></tr>`;
-  });
-  if(!count)tabelAbsensi.innerHTML='<tr><td colspan="2" class="empty">Tidak ada data absensi</td></tr>';
-}
-
-async function loadPemanen(t){
-  tabelPemanen.innerHTML="";
-  let total=0,count=0;
-  const search=searchInput.value.toLowerCase();
-  allData.pemanen.forEach(v=>{
-    if(v.tanggal!==t||v.jenis!=="Janjang")return;
-    if(search&&!v.nama.toLowerCase().includes(search)&&!v.blok.toLowerCase().includes(search))return;
-    count++;
-    total+=v.jumlah;
-    const status=v.status||"Belum";
-    tabelPemanen.innerHTML+=`
-      <tr><td>${v.nama}</td><td>${v.blok}</td><td>${v.jumlah}</td>
-      <td><span class="badge ${status==="Selesai"?"selesai":"belum"}">${status}</span></td></tr>`;
-  });
-  if(!count)tabelPemanen.innerHTML='<tr><td colspan="4" class="empty">Tidak ada data pemanen</td></tr>';
-  totalJanjang.innerText=total;
-}
-
-async function loadBrondol(t){
-  tabelBrondol.innerHTML="";
-  let total=0,count=0;
-  const search=searchInput.value.toLowerCase();
-  allData.pemanen.forEach(v=>{
-    if(v.tanggal!==t||v.jenis!=="Brondol")return;
-    if(search&&!v.nama.toLowerCase().includes(search))return;
-    count++;
-    total+=v.jumlah;
-    tabelBrondol.innerHTML+=`
-      <tr><td>${v.nama}</td><td>${v.jumlah}</td><td>${v.keterangan||""}</td></tr>`;
-  });
-  if(!count)tabelBrondol.innerHTML='<tr><td colspan="3" class="empty">Tidak ada data brondol</td></tr>';
-  totalKarung.innerText=total;
-}
-
-async function loadKerja(t){
-  tabelKerja.innerHTML="";
-  
-  // Load from both semprot and tebas collections
-  if(!allData.kerja.length){
-    const snapSemprot=await db.collection("semprot").get();
-    const snapTebas=await db.collection("tebas").get();
-    allData.kerja=[
-      ...snapSemprot.docs.map(d=>({...d.data(),id:d.id,jenis:"Semprot"})),
-      ...snapTebas.docs.map(d=>({...d.data(),id:d.id,jenis:"Tebas"}))
-    ];
-    console.log('Loaded kerja data:',allData.kerja.length,'records');
-  }
-  
-  let count=0;
-  const search=searchInput.value.toLowerCase();
-  allData.kerja.forEach(v=>{
-    if(v.tanggal!==t)return;
-    if(search&&!v.blok.toLowerCase().includes(search))return;
-    count++;
-    const foto=v.foto?`<a href="${v.foto}" target="_blank">📷</a>`:"—";
-    tabelKerja.innerHTML+=`
-      <tr><td>${v.jenis}</td><td>${v.blok}</td><td>${v.keterangan||"—"}</td>
-      <td>${foto}</td></tr>`;
-  });
-  console.log('Kerja data for',t,':',count,'records');
-  if(!count)tabelKerja.innerHTML='<tr><td colspan="4" class="empty">Tidak ada data kerja</td></tr>';
-}
-
-/* === FITUR TAMBAHAN === */
-
-function loadTopPemanen(t){
-  console.log('🏆 Loading Top Pemanen for date:',t);
-  tabelTop.innerHTML="";
-  const top=allData.pemanen.filter(v=>v.tanggal===t&&v.jenis==="Janjang")
-    .sort((a,b)=>b.jumlah-a.jumlah).slice(0,5);
-  console.log('Found',top.length,'top pemanen for',t);
-  if(top.length>0){
-    top.forEach((v,i)=>console.log(`  ${i+1}. ${v.nama}: ${v.jumlah} tandan (${v.tanggal})`));
-  }
-  if(!top.length){tabelTop.innerHTML='<tr><td colspan="4" class="empty">Belum ada data</td></tr>';return}
-  top.forEach((v,i)=>{
-    const medal=['🥇','🥈','🥉','4️⃣','5️⃣'][i];
-    tabelTop.innerHTML+=`<tr><td>${medal}</td><td>${v.nama}</td><td><b>${v.jumlah}</b></td><td>${v.blok}</td></tr>`;
-  });
-}
-
-function loadChart(){
-  console.log('📊 Loading Chart - 7 Hari Terakhir');
-  // Gunakan timezone Indonesia untuk grafik juga
-  const now=new Date();
-  const jakartaTime=new Date(now.toLocaleString('en-US',{timeZone:'Asia/Jakarta'}));
-  const labels=[],data=[],dates=[];
-  
-  for(let i=6;i>=0;i--){
-    const d=new Date(jakartaTime);
-    d.setDate(d.getDate()-i);
-    const year=d.getFullYear();
-    const month=String(d.getMonth()+1).padStart(2,'0');
-    const day=String(d.getDate()).padStart(2,'0');
-    const tgl=`${year}-${month}-${day}`;
-    const dayName=d.toLocaleDateString('id',{weekday:'short'});
-    
-    labels.push(`${dayName} ${day}/${month}`);
-    dates.push(tgl);
-    
-    const total=allData.pemanen.filter(v=>v.tanggal===tgl&&v.jenis==="Janjang")
-      .reduce((sum,v)=>sum+v.jumlah,0);
-    data.push(total);
-    console.log(`  ${dayName} ${tgl}: ${total} tandan`);
-  }
-  console.log('Chart dates:',dates);
-  console.log('Chart data:',data);
-  if(chartInstance)chartInstance.destroy();
-  chartInstance=new Chart(chartPanen,{
-    type:'line',
-    data:{
-      labels,
-      datasets:[{
-        label:'Janjang Panen',
-        data,
-        borderColor:'#667eea',
-        backgroundColor:'rgba(102,126,234,.2)',
-        borderWidth:3,
-        tension:.4,
-        fill:true,
-        pointBackgroundColor:'#764ba2',
-        pointBorderColor:'#fff',
-        pointBorderWidth:2,
-        pointRadius:5,
-        pointHoverRadius:7,
-        pointHoverBackgroundColor:'#f093fb',
-        pointHoverBorderWidth:3
-      }]
-    },
-    options:{
-      responsive:true,
-      plugins:{
-        legend:{
-          display:true,
-          labels:{
-            color:'#475569',
-            font:{size:13,weight:'600'},
-            padding:15
-          }
-        },
-        tooltip:{
-          backgroundColor:'rgba(102,126,234,.95)',
-          titleColor:'#fff',
-          bodyColor:'#fff',
-          padding:12,
-          cornerRadius:8,
-          displayColors:false
-        }
-      },
-      scales:{
-        y:{
-          beginAtZero:true,
-          grid:{color:'rgba(0,0,0,.05)',drawBorder:false},
-          ticks:{color:'#64748b',font:{size:11}}
-        },
-        x:{
-          grid:{display:false},
-          ticks:{color:'#64748b',font:{size:11}}
-        }
-      }
-    }
-  });
-}
-
-async function loadProgress(t){
-  let selesai=0,total=0;
-  (await db.collection("pemanen").get()).forEach(d=>{
-    const v=d.data();
-    if(v.tanggal!==t||v.jenis!=="Janjang")return;
-    total++;
-    if(v.status==="Selesai")selesai++;
-  });
-  const persen=total?Math.round((selesai/total)*100):0;
-  progressBar.style.width=persen+"%";
-  progressText.innerText=persen+"% Selesai";
-}
-
-function exportPNG(){
-  showLoading();
-  const exportArea=document.getElementById('exportArea');
-  const originalScroll=window.scrollY;
-  
-  // Tambah class untuk hide export buttons
-  document.body.classList.add('exporting');
-  exportArea.classList.add('export-mode');
-  
-  // Scroll ke area export
-  exportArea.scrollIntoView({behavior:'instant',block:'start'});
-  
-  setTimeout(()=>{
-    html2canvas(exportArea,{
-      scale:3,
-      useCORS:true,
-      allowTaint:true,
-      backgroundColor:'#ffffff',
-      logging:false,
-      width:exportArea.offsetWidth,
-      height:exportArea.scrollHeight,
-      windowWidth:exportArea.offsetWidth+100,
-      windowHeight:exportArea.scrollHeight+100,
-      x:0,
-      y:0
-    }).then(canvas=>{
-      // Restore state
-      document.body.classList.remove('exporting');
-      exportArea.classList.remove('export-mode');
-      window.scrollTo(0,originalScroll);
-      hideLoading();
-      
-      // Download
-      const link=document.createElement('a');
-      const date=new Date().toISOString().slice(0,10);
-      link.download=`Laporan_Sawit_${date}_HD.png`;
-      link.href=canvas.toDataURL('image/png',1.0);
-      link.click();
-      
-      showToast('✅ PNG HD berhasil diunduh!');
-    }).catch(e=>{
-      document.body.classList.remove('exporting');
-      exportArea.classList.remove('export-mode');
-      window.scrollTo(0,originalScroll);
-      hideLoading();
-      showToast('❌ Gagal export PNG: '+e.message,3000);
-    });
-  },500);
-}
-
-function exportPDF(){
-  html2canvas(document.body).then(canvas=>{
-    const pdf=new jspdf.jsPDF("p","mm","a4");
-    const img=canvas.toDataURL("image/png");
-    const w=210,h=canvas.height*w/canvas.width;
-    pdf.addImage(img,"PNG",0,0,w,h);
-    pdf.save("laporan_sawit.pdf");
-  });
-}
-
-function exportExcel(){
-  const wb=XLSX.utils.book_new();
-  document.querySelectorAll("table").forEach((t,i)=>{
-    XLSX.utils.book_append_sheet(wb,XLSX.utils.table_to_sheet(t),"Sheet"+(i+1));
-  });
-  XLSX.writeFile(wb,"laporan_sawit.xlsx");
-}
-
-/* LOAD */
-function updateLastUpdateTime(){
-  const now=new Date();
-  const timeStr=now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  const lastUpdateEl=document.getElementById('lastUpdate');
-  if(lastUpdateEl){
-    lastUpdateEl.innerText=`Update terakhir: ${timeStr}`;
-  }
-}
-
-function forceRefresh(){
-  console.log('🔄 Force refresh triggered by user');
-  // Reset tanggal ke hari ini
-  tanggal.value=today();
-  updateDateDisplay(today());
-  // Clear cache data
-  allData={pemanen:[],absensi:[],brondol:[],kerja:[]};
-  // Reload semua data
-  loadAll();
-}
-
-async function loadAll(){
-  showLoading();
-  try{
-    const t=tanggal.value;
-    updateDateDisplay(t);
-    await loadRingkasan();
-    await loadAbsensi(t);
-    loadPemanen(t);
-    loadBrondol(t);
-    await loadKerja(t);
-    loadProgress(t);
-    loadTopPemanen(t);
-    loadChart();
-    updateLastUpdateTime();
-    showToast('✅ Data berhasil dimuat!');
-  }catch(e){
-    showToast('❌ Gagal memuat data: '+e.message,3000);
-    console.error(e);
-  }finally{
-    hideLoading();
-  }
-}
-
-tanggal.value=today();
-updateDateDisplay(today());
-tanggal.addEventListener("change",loadAll);
-searchInput.addEventListener("input",()=>{
-  const t=tanggal.value;
-  loadPemanen(t);
-  loadBrondol(t);
-  loadKerja(t);
-});
-
-// Initial load dengan force refresh
-console.log('Initial load - Setting date to:',today());
-loadAll();
-</script>
-
-</body>
-</html>
