@@ -1,225 +1,226 @@
-import React, { useState, useEffect } from 'react';
-import { Heart, Copy, RefreshCw, ShieldAlert, TrendingDown, Users, CheckCircle2 } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gema Nurani - Refleksi Jiwa</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Playfair+Display:italic,wght@700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .serif { font-family: 'Playfair Display', serif; }
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 selection:bg-amber-100 min-h-screen">
 
-const quotes = [
-  {
-    id: 1,
-    category: 'syukur',
-    text: "Barangsiapa yang tidak mensyukuri yang sedikit, maka ia tidak akan mampu mensyukuri yang banyak.",
-    author: "Refleksi Diri"
-  },
-  {
-    id: 2,
-    category: 'rezeki',
-    text: "Jangan menghina hasil yang kecil. Di dalam titisan yang sedikit itu, mungkin ada keberkatan yang mampu memadamkan api kegelisahanmu.",
-    author: "Mutiara Kata"
-  },
-  {
-    id: 3,
-    category: 'kepercayaan',
-    text: "Mencurigai semua orang tidak akan melindungimu dari kekecewaan, ia hanya akan memenjarakanmu dalam kesunyian.",
-    author: "Nasihat Bijak"
-  },
-  {
-    id: 4,
-    category: 'syukur',
-    text: "Kufur nikmat bermula apabila mata terlalu fokus melihat apa yang ada di tangan orang lain, sehingga terlupa apa yang sedang digenggam sendiri.",
-    author: "Cermin Hati"
-  },
-  {
-    id: 5,
-    category: 'rezeki',
-    text: "Rezeki bukan soal angka, tapi soal rasa cukup. Tanpa rasa cukup, seluruh dunia pun tidak akan pernah memuaskanmu.",
-    author: "Pesanan Murabbi"
-  },
-  {
-    id: 6,
-    category: 'kepercayaan',
-    text: "Kepercayaan adalah jambatan. Jika kamu takut untuk membinanya, kamu akan selamanya terasing di pulau kebimbanganmu sendiri.",
-    author: "Kata Hikmah"
-  },
-  {
-    id: 7,
-    category: 'syukur',
-    text: "Nikmat yang tidak disyukuri adalah racun yang membunuh kebahagiaan secara perlahan.",
-    author: "Kalam Jiwa"
-  },
-  {
-    id: 8,
-    category: 'rezeki',
-    text: "Hasil yang kecil yang diredhai lebih baik daripada keuntungan besar yang membawa kepada kelalaian.",
-    author: "Peringatan Diri"
-  },
-  {
-    id: 9,
-    category: 'kepercayaan',
-    text: "Berilah peluang untuk percaya. Manusia mungkin mengecewakan, tetapi menutup pintu hati hanya akan menyekat rahmat persaudaraan.",
-    author: "Minda Positif"
-  }
-];
-
-export default function App() {
-  const [filter, setFilter] = useState('semua');
-  const [activeQuote, setActiveQuote] = useState(null);
-  const [copyStatus, setCopyStatus] = useState(null);
-
-  useEffect(() => {
-    getRandomQuote();
-  }, []);
-
-  const getRandomQuote = () => {
-    const filtered = filter === 'semua' ? quotes : quotes.filter(q => q.category === filter);
-    const randomIndex = Math.floor(Math.random() * filtered.length);
-    setActiveQuote(filtered[randomIndex]);
-  };
-
-  const copyToClipboard = (text) => {
-    document.execCommand('copy'); // Fallback for environments
-    // Logic for UI feedback
-    setCopyStatus(activeQuote.id);
-    setTimeout(() => setCopyStatus(null), 2000);
-  };
-
-  const categories = [
-    { id: 'semua', label: 'Semua', icon: <Heart className="w-4 h-4" /> },
-    { id: 'syukur', label: 'Syukur', icon: <ShieldAlert className="w-4 h-4" /> },
-    { id: 'rezeki', label: 'Hasil & Rezeki', icon: <TrendingDown className="w-4 h-4" /> },
-    { id: 'kepercayaan', label: 'Kepercayaan', icon: <Users className="w-4 h-4" /> },
-  ];
-
-  return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-amber-100">
-      {/* Header */}
-      <header className="max-w-4xl mx-auto pt-12 px-6 text-center">
-        <h1 className="text-4xl font-light tracking-tight text-slate-900 mb-2">
-          Gema <span className="font-semibold text-amber-600">Nurani</span>
+    <!-- Header -->
+    <header class="max-w-4xl mx-auto pt-16 px-6 text-center">
+        <h1 class="text-4xl font-light tracking-tight text-slate-900 mb-2">
+            Gema <span class="font-semibold text-amber-600">Nurani</span>
         </h1>
-        <p className="text-slate-500 max-w-md mx-auto italic">
-          "Mengetuk pintu hati yang leka, menyedarkan jiwa yang terleka."
+        <p class="text-slate-500 max-w-md mx-auto italic">
+            "Mengetuk pintu hati yang leka, menyedarkan jiwa yang terleka."
         </p>
-      </header>
+    </header>
 
-      <main className="max-w-4xl mx-auto py-12 px-6">
-        {/* Category Filters */}
-        <div className="flex flex-wrap justify-center gap-3 mb-12">
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => {
-                setFilter(cat.id);
-                // Trigger refresh to match new filter
-                setTimeout(getRandomQuote, 10);
-              }}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition-all duration-300 border ${
-                filter === cat.id
-                  ? 'bg-slate-900 text-white border-slate-900 shadow-lg'
-                  : 'bg-white text-slate-600 border-slate-200 hover:border-amber-300 hover:text-amber-600'
-              }`}
-            >
-              {cat.icon}
-              <span className="text-sm font-medium">{cat.label}</span>
-            </button>
-          ))}
+    <main class="max-w-4xl mx-auto py-12 px-6">
+        <!-- Category Filters -->
+        <div id="filter-container" class="flex flex-wrap justify-center gap-3 mb-12">
+            <!-- Buttons will be injected here by JS -->
         </div>
 
-        {/* Featured Quote Display */}
-        {activeQuote && (
-          <div className="relative bg-white border border-slate-100 rounded-3xl p-10 md:p-16 shadow-xl shadow-slate-200/50 mb-16 overflow-hidden">
-            <div className="absolute top-0 left-0 w-2 h-full bg-amber-500"></div>
-            <div className="absolute -top-10 -right-10 opacity-5">
-              <Heart size={200} />
+        <!-- Featured Quote Display -->
+        <div id="quote-card" class="relative bg-white border border-slate-100 rounded-3xl p-10 md:p-16 shadow-xl shadow-slate-200/50 mb-16 overflow-hidden hidden">
+            <div class="absolute top-0 left-0 w-2 h-full bg-amber-500"></div>
+            <div class="absolute -top-10 -right-10 opacity-5 text-slate-900">
+                <i data-lucide="heart" style="width: 200px; height: 200px;"></i>
             </div>
             
-            <div className="relative z-10 flex flex-col items-center text-center">
-              <span className="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-[10px] uppercase tracking-widest font-bold mb-6">
-                Tema: {activeQuote.category}
-              </span>
-              
-              <p className="text-2xl md:text-3xl font-serif text-slate-700 leading-relaxed mb-8">
-                "{activeQuote.text}"
-              </p>
-              
-              <div className="w-12 h-px bg-slate-200 mb-6"></div>
-              
-              <p className="text-slate-400 font-medium tracking-wide">
-                — {activeQuote.author}
-              </p>
+            <div class="relative z-10 flex flex-col items-center text-center fade-in">
+                <span id="quote-category" class="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-[10px] uppercase tracking-widest font-bold mb-6">
+                    TEMA
+                </span>
+                
+                <p id="quote-text" class="text-2xl md:text-3xl serif text-slate-700 leading-relaxed mb-8 px-4">
+                    "Memuatkan kata-kata..."
+                </p>
+                
+                <div class="w-12 h-px bg-slate-200 mb-6"></div>
+                
+                <p id="quote-author" class="text-slate-400 font-medium tracking-wide">
+                    — Penulis
+                </p>
 
-              <div className="flex gap-4 mt-10">
-                <button 
-                  onClick={getRandomQuote}
-                  className="p-4 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-full transition-all group"
-                  title="Tukar Kata-kata"
-                >
-                  <RefreshCw className="w-6 h-6 group-hover:rotate-180 transition-transform duration-500" />
-                </button>
-                <button 
-                  onClick={() => {
-                    const el = document.createElement('textarea');
-                    el.value = `${activeQuote.text} — ${activeQuote.author}`;
-                    document.body.appendChild(el);
-                    el.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(el);
-                    setCopyStatus(activeQuote.id);
-                    setTimeout(() => setCopyStatus(null), 2000);
-                  }}
-                  className="flex items-center gap-2 px-6 py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-full font-semibold transition-all shadow-md shadow-amber-200"
-                >
-                  {copyStatus === activeQuote.id ? (
-                    <>
-                      <CheckCircle2 className="w-5 h-5" />
-                      <span>Tersalin!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-5 h-5" />
-                      <span>Salin Petikan</span>
-                    </>
-                  )}
-                </button>
-              </div>
+                <div class="flex gap-4 mt-10">
+                    <button id="refresh-btn" class="p-4 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-full transition-all group" title="Tukar Kata-kata">
+                        <i data-lucide="refresh-cw" class="group-hover:rotate-180 transition-transform duration-500"></i>
+                    </button>
+                    <button id="copy-btn" class="flex items-center gap-2 px-6 py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-full font-semibold transition-all shadow-md shadow-amber-200">
+                        <i data-lucide="copy" class="w-5 h-5"></i>
+                        <span id="copy-text">Salin Petikan</span>
+                    </button>
+                </div>
             </div>
-          </div>
-        )}
-
-        {/* Content Section: Detailed Reflections */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
-            <div className="w-12 h-12 bg-rose-50 text-rose-500 rounded-xl flex items-center justify-center mb-6">
-              <ShieldAlert />
-            </div>
-            <h3 className="text-lg font-bold mb-3">Bahaya Kufur Nikmat</h3>
-            <p className="text-sm text-slate-500 leading-relaxed">
-              Kufur nikmat bukan sekadar tidak berterima kasih, tetapi menafikan kebaikan yang diterima. Ia menjadikan hati keras dan sentiasa merasa tidak cukup walaupun dikelilingi kemewahan.
-            </p>
-          </div>
-
-          <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
-            <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center mb-6">
-              <TrendingDown />
-            </div>
-            <h3 className="text-lg font-bold mb-3">Keberkatan Hasil</h3>
-            <p className="text-sm text-slate-500 leading-relaxed">
-              Hasil yang sedikit namun berkat akan membawa kepada ketenangan. Menolak hasil yang kecil hanya akan menjauhkan kita daripada peluang yang lebih besar di masa hadapan.
-            </p>
-          </div>
-
-          <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
-            <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center mb-6">
-              <Users />
-            </div>
-            <h3 className="text-lg font-bold mb-3">Jambatan Kepercayaan</h3>
-            <p className="text-sm text-slate-500 leading-relaxed">
-              Hidup tanpa kepercayaan adalah hidup dalam ketakutan. Memberi ruang kepada orang lain bukan tanda lemah, tetapi tanda kita berani untuk hidup secara bermasyarakat.
-            </p>
-          </div>
         </div>
-      </main>
 
-      <footer className="py-12 text-center text-slate-400 text-sm">
-        <p>© 2024 Gema Nurani — Refleksi Untuk Jiwa Yang Mencari Ketenangan</p>
-      </footer>
-    </div>
-  );
-}
+        <!-- Content Section: Info Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                <div class="w-12 h-12 bg-rose-50 text-rose-500 rounded-xl flex items-center justify-center mb-6">
+                    <i data-lucide="shield-alert"></i>
+                </div>
+                <h3 class="text-lg font-bold mb-3 text-slate-900">Bahaya Kufur Nikmat</h3>
+                <p class="text-sm text-slate-500 leading-relaxed">
+                    Kufur nikmat bermula apabila kita berhenti menghargai apa yang ada dan mula merungut tentang apa yang tiada.
+                </p>
+            </div>
+
+            <div class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                <div class="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center mb-6">
+                    <i data-lucide="trending-down"></i>
+                </div>
+                <h3 class="text-lg font-bold mb-3 text-slate-900">Keberkatan Hasil</h3>
+                <p class="text-sm text-slate-500 leading-relaxed">
+                    Hasil yang sedikit tetapi diberkati Tuhan jauh lebih melapangkan jiwa berbanding limpahan harta yang membawa keresahan.
+                </p>
+            </div>
+
+            <div class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                <div class="w-12 h-12 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center mb-6">
+                    <i data-lucide="users"></i>
+                </div>
+                <h3 class="text-lg font-bold mb-3 text-slate-900">Nilai Kepercayaan</h3>
+                <p class="text-sm text-slate-500 leading-relaxed">
+                    Membina kepercayaan memerlukan keberanian. Tanpa kepercayaan, kita hanya membina tembok yang mengurung diri sendiri.
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="py-12 text-center text-slate-400 text-sm">
+        <p>© <span id="year"></span> Gema Nurani — Refleksi Untuk Jiwa Yang Mencari Ketenangan</p>
+    </footer>
+
+    <script>
+        // Data Quotes
+        const quotes = [
+            { id: 1, category: 'syukur', text: "Barangsiapa yang tidak mensyukuri yang sedikit, maka ia tidak akan mampu mensyukuri yang banyak.", author: "Refleksi Diri" },
+            { id: 2, category: 'rezeki', text: "Jangan menghina hasil yang kecil. Di dalam titisan yang sedikit itu, mungkin ada keberkatan yang mampu memadamkan api kegelisahanmu.", author: "Mutiara Kata" },
+            { id: 3, category: 'kepercayaan', text: "Mencurigai semua orang tidak akan melindungimu dari kekecewaan, ia hanya akan memenjarakanmu dalam kesunyian.", author: "Nasihat Bijak" },
+            { id: 4, category: 'syukur', text: "Kufur nikmat bermula apabila mata terlalu fokus melihat apa yang ada di tangan orang lain, sehingga terlupa apa yang sedang digenggam sendiri.", author: "Cermin Hati" },
+            { id: 5, category: 'rezeki', text: "Rezeki bukan soal angka, tapi soal rasa cukup. Tanpa rasa cukup, seluruh dunia pun tidak akan pernah memuaskanmu.", author: "Pesanan Murabbi" },
+            { id: 6, category: 'kepercayaan', text: "Kepercayaan adalah jambatan. Jika kamu takut untuk membinanya, kamu akan selamanya terasing di pulau kebimbanganmu sendiri.", author: "Kata Hikmah" },
+            { id: 7, category: 'syukur', text: "Nikmat yang tidak disyukuri adalah racun yang membunuh kebahagiaan secara perlahan.", author: "Kalam Jiwa" },
+            { id: 8, category: 'rezeki', text: "Hasil yang kecil yang diredhai lebih baik daripada keuntungan besar yang membawa kepada kelalaian.", author: "Peringatan Diri" },
+            { id: 9, category: 'kepercayaan', text: "Berilah peluang untuk percaya. Manusia mungkin mengecewakan, tetapi menutup pintu hati hanya akan menyekat rahmat persaudaraan.", author: "Minda Positif" }
+        ];
+
+        const categories = [
+            { id: 'semua', label: 'Semua', icon: 'heart' },
+            { id: 'syukur', label: 'Syukur', icon: 'shield-alert' },
+            { id: 'rezeki', label: 'Hasil & Rezeki', icon: 'trending-down' },
+            { id: 'kepercayaan', label: 'Kepercayaan', icon: 'users' }
+        ];
+
+        let currentFilter = 'semua';
+        let activeQuote = null;
+
+        // Initialize
+        window.onload = () => {
+            document.getElementById('year').textContent = new Date().getFullYear();
+            renderFilters();
+            getRandomQuote();
+            lucide.createIcons();
+        };
+
+        function renderFilters() {
+            const container = document.getElementById('filter-container');
+            container.innerHTML = '';
+            
+            categories.forEach(cat => {
+                const btn = document.createElement('button');
+                const isActive = currentFilter === cat.id;
+                
+                btn.className = `flex items-center gap-2 px-5 py-2.5 rounded-full transition-all duration-300 border ${
+                    isActive 
+                    ? 'bg-slate-900 text-white border-slate-900 shadow-lg' 
+                    : 'bg-white text-slate-600 border-slate-200 hover:border-amber-300 hover:text-amber-600'
+                }`;
+                
+                btn.innerHTML = `<i data-lucide="${cat.icon}" class="w-4 h-4"></i><span class="text-sm font-medium">${cat.label}</span>`;
+                btn.onclick = () => {
+                    currentFilter = cat.id;
+                    renderFilters();
+                    getRandomQuote();
+                };
+                container.appendChild(btn);
+            });
+            lucide.createIcons();
+        }
+
+        function getRandomQuote() {
+            const filtered = currentFilter === 'semua' ? quotes : quotes.filter(q => q.category === currentFilter);
+            const randomIndex = Math.floor(Math.random() * filtered.length);
+            activeQuote = filtered[randomIndex];
+            
+            const card = document.getElementById('quote-card');
+            card.classList.remove('hidden');
+            
+            // UI Update with small delay for animation feel
+            const textEl = document.getElementById('quote-text');
+            const authorEl = document.getElementById('quote-author');
+            const catEl = document.getElementById('quote-category');
+            
+            textEl.textContent = `"${activeQuote.text}"`;
+            authorEl.textContent = `— ${activeQuote.author}`;
+            catEl.textContent = `Tema: ${activeQuote.category}`;
+            
+            // Reset copy button
+            resetCopyButton();
+        }
+
+        function resetCopyButton() {
+            const btnText = document.getElementById('copy-text');
+            btnText.textContent = "Salin Petikan";
+            const btn = document.getElementById('copy-btn');
+            btn.classList.replace('bg-emerald-500', 'bg-amber-500');
+        }
+
+        // Copy logic using prompt-friendly method
+        document.getElementById('copy-btn').onclick = function() {
+            if (!activeQuote) return;
+            
+            const fullText = `${activeQuote.text} — ${activeQuote.author}`;
+            const textArea = document.createElement("textarea");
+            textArea.value = fullText;
+            document.body.appendChild(textArea);
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                const btnText = document.getElementById('copy-text');
+                btnText.textContent = "Tersalin!";
+                const btn = document.getElementById('copy-btn');
+                btn.classList.replace('bg-amber-500', 'bg-emerald-500');
+                
+                setTimeout(resetCopyButton, 2000);
+            } catch (err) {
+                console.error('Gagal menyalin', err);
+            }
+            
+            document.body.removeChild(textArea);
+        };
+
+        document.getElementById('refresh-btn').onclick = getRandomQuote;
+
+    </script>
+</body>
+</html>
